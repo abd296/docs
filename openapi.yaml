@@ -1,0 +1,350 @@
+openapi: 3.0.3
+info:
+  title: Nomod API Documentation (latest)
+  version: 1.0.0
+  description: Nomod API OpenApi Specification
+paths:
+  /v2/api/create-link:
+    post:
+      operationId: Generate Link
+      description: Generate link.
+      tags:
+      - v2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLinkRequest'
+        required: true
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLinkRequest'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  detail:
+                    type: object
+                    nullable: true
+                    description: Detail of the error message.
+          description: ''
+  /v2/api/payments/currencies:
+    get:
+      operationId: ListCurrencies
+      description: Fetch all active currencies sorted by popularity and name.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      tags:
+      - v2
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CurrenciesApi'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  detail:
+                    type: object
+                    nullable: true
+                    description: Detail of the error message.
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  detail:
+                    type: object
+                    nullable: true
+                    description: Detail of the error message.
+          description: ''
+  /v2/api/payments/currencies/{id}:
+    get:
+      operationId: ListCurrencies_2
+      description: Fetch all active currencies sorted by popularity and name.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this currency.
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      tags:
+      - v2
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CurrenciesApi'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  detail:
+                    type: object
+                    nullable: true
+                    description: Detail of the error message.
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  detail:
+                    type: object
+                    nullable: true
+                    description: Detail of the error message.
+          description: ''
+  /v2/api/wcommerce/authenticate:
+    get:
+      operationId: Authenticate
+      description: test out the api key and get business information.
+      tags:
+      - v2
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessApi'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  detail:
+                    type: object
+                    nullable: true
+                    description: Detail of the error message.
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  detail:
+                    type: object
+                    nullable: true
+                    description: Detail of the error message.
+          description: ''
+components:
+  schemas:
+    BusinessApi:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        image:
+          type: string
+          format: uri
+          readOnly: true
+          title: Business image
+      required:
+      - image
+      - name
+      - status
+      - uuid
+    CreateLinkRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the link.
+          maxLength: 100
+        currency:
+          type: string
+          description: Currency code. Get the currency code form /currencies api
+          maxLength: 3
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          default: '0.00'
+          description: Discount amount to be added
+        discount_percentage:
+          type: integer
+          default: 0
+          description: Discount percentage.
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Total amount.
+        note:
+          type: string
+          nullable: true
+          description: Optional note for the link.
+        allow_tip:
+          type: boolean
+          default: false
+          description: Allow tips.
+        shipping_address_required:
+          type: boolean
+          default: false
+          description: Whether shipping address is required.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkItem'
+          description: List of items with name and amount.
+        customFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkCustomField'
+          nullable: true
+          description: 'Custom fields to add. Note: max you can add 5'
+      required:
+      - amount
+      - currency
+      - items
+      - title
+    CurrenciesApi:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          title: Currency code
+          maxLength: 3
+        decimal_places:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        denominations:
+          type: string
+          readOnly: true
+      required:
+      - code
+      - decimal_places
+      - denominations
+      - name
+      - uuid
+    LinkCustomField:
+      type: object
+      properties:
+        name:
+          type: string
+        is_required:
+          type: boolean
+          default: false
+      required:
+      - name
+    LinkItem:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+      required:
+      - amount
+      - name
+    StatusEnum:
+      enum:
+      - limited
+      - enabled
+      - review
+      - disabled
+      type: string
+      description: |-
+        * `limited` - Limited
+        * `enabled` - Enabled
+        * `review` - Review
+        * `disabled` - Disabled
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: Your API key. This is required by all endpoints to access our API
+        programatically.                             You can view your API Key by
+        navigating to the app settings
