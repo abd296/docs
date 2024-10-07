@@ -38,17 +38,24 @@
     {
       "group": "Generic",
       "pages": [
-        "api-reference/generic/business-info",
-        "api-reference/generic/get-currencies",
-        "api-reference/generic/create-link"
+        "api-reference/business-info",
+        "api-reference/get-currencies",
+        "api-reference/create-link"
       ]
     },
     {
       "group": "Zapier",
       "pages": [
-        "api-reference/endpoint/create"
+        "api-reference/zapier/authenticate"
+      ]
+    },
+    {
+      "group": "Woocommerce",
+      "pages": [
+        "api-reference/woocommerce/authenticate"
       ]
     }
+
   ],
   "api": {
     "baseUrl": "https://apiv1.nomod.dev",
