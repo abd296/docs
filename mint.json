@@ -58,7 +58,7 @@
 
   ],
   "api": {
-    "baseUrl": "https://apiv1.nomod.dev",
+    "baseUrl": "https://api.nomod.dev",
     "playground": {
       "mode": "show"
     }
