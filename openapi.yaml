@@ -13,11 +13,13 @@ paths:
         name: code
         schema:
           type: string
+        description: country code
       - in: query
         name: uuid
         schema:
           type: string
           format: uuid
+        description: UUID of country
       tags:
       - v1
       security:
@@ -70,21 +72,12 @@ paths:
       operationId: Fetch provinces
       description: Fetch all countries provinces
       parameters:
-      - in: query
-        name: code
-        schema:
-          type: string
       - in: path
         name: uuid
         schema:
           type: string
           format: uuid
         required: true
-      - in: query
-        name: uuid
-        schema:
-          type: string
-          format: uuid
       tags:
       - v1
       security:
@@ -136,13 +129,6 @@ paths:
     get:
       operationId: List Currency
       description: Fetch all active currencies sorted by popularity and name.
-      parameters:
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
-        schema:
-          type: string
       tags:
       - v1
       security:
@@ -217,45 +203,12 @@ paths:
               schema:
                 type: array
                 items:
-                  count: 37
-                  next: https://api.nomod.com/v1/customer?page=3
-                  previous: https://api.nomod.com/v1/customer?page=1
-                  results: []
+                  $ref: '#/components/schemas/PaginatedContacts'
           description: Paginated list of contacts with metadata
         '401':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    nullable: false
-                    description: Text of the error message.
-                    example: Authentication credentials were not provided.
-                  code:
-                    type: object
-                    nullable: false
-                    description: Specific error code identifying the error.
-                    example: not_authenticated
-          description: ''
+          description: Unauthorized access
         '429':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    nullable: false
-                    description: Text of the error message.
-                    example: Request was throttled. Expected available in 1 second.
-                  code:
-                    type: object
-                    nullable: false
-                    description: Specific error code identifying the error.
-                    example: throttled
-          description: ''
+          description: Too many requests
     post:
       operationId: Create Contact
       description: Create a new contact with the given details.
@@ -419,12 +372,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - in: query
-        name: uuid
-        schema:
-          type: string
-          format: uuid
-        description: UUID of the link
       tags:
       - v1
       security:
@@ -566,6 +513,69 @@ components:
       - name
       - status
       - uuid
+    Contact:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        business_name:
+          type: string
+          maxLength: 200
+        job_title:
+          type: string
+          maxLength: 200
+        province:
+          type: integer
+          nullable: true
+        city:
+          type: string
+          maxLength: 150
+          minLength: 2
+        street:
+          type: string
+          title: Street address
+          maxLength: 150
+          minLength: 2
+        zip_code:
+          type: string
+          maxLength: 16
+        country:
+          type: string
+          title: Country code
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        phone_number:
+          type: string
+          pattern: ^(?=.{3,16}$)[+]{0,1}[0-9() -]+$
+          maxLength: 20
+        image:
+          type: string
+          format: uri
+          readOnly: true
+          title: Contact image
+        transaction_number:
+          type: integer
+          readOnly: true
+          default: 0
+      required:
+      - created
+      - id
+      - image
+      - transaction_number
     ContactApi:
       type: object
       properties:
@@ -818,6 +828,28 @@ components:
       required:
       - amount
       - name
+    PaginatedContacts:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+      required:
+      - count
+      - next
+      - previous
+      - results
     Province:
       type: object
       properties:

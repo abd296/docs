@@ -36,19 +36,21 @@
       ]
     },
     {
-      "group": "Generic",
+      "group": "Link",
       "pages": [
-        "api-reference/business-info",
-        "api-reference/get-currencies",
         "api-reference/create-link",
-        "api-reference/get-link",
-        "api-reference/get-countries",
-        "api-reference/get-provinces"
+        "api-reference/get-link"
       ]
     },
     {
-      "group": "Contacts",
+      "group": "Foundational",
       "pages": [
+        "api-reference/business-info",
+        "api-reference/get-currencies",
+
+        "api-reference/get-countries",
+        "api-reference/get-provinces",
+        
         "api-reference/contacts/create-contact",
         "api-reference/contacts/get-contacts",
         "api-reference/contacts/retrieve-contact"
