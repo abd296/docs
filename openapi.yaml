@@ -206,9 +206,39 @@ paths:
                   $ref: '#/components/schemas/PaginatedContacts'
           description: Paginated list of contacts with metadata
         '401':
-          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
         '429':
-          description: Too many requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
     post:
       operationId: Create Contact
       description: Create a new contact with the given details.
@@ -325,6 +355,70 @@ paths:
                     description: Specific error code identifying the error.
                     example: throttled
           description: ''
+  /v1/invoice:
+    post:
+      operationId: Generate Invoice
+      description: Generate Invoice.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+        required: true
+      security:
+      - apiKeyAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  code:
+                    type: object
+                    nullable: true
+                    description: Specific error code identifying the error.
+          description: ''
+  /v1/invoice/{uuid}:
+    get:
+      operationId: Retrieve Invoice
+      description: Retrieve Invoice details by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceDetailApi'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                description: Invoice not found
+          description: ''
   /v1/link:
     post:
       operationId: Generate Link
@@ -344,7 +438,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateLinkRequest'
+                $ref: '#/components/schemas/LinkApi'
           description: ''
         '400':
           content:
@@ -381,7 +475,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateLinkRequest'
+                $ref: '#/components/schemas/LinkApi'
           description: ''
         '404':
           content:
@@ -501,7 +595,7 @@ components:
           readOnly: true
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusEnum'
+          - $ref: '#/components/schemas/BusinessApiStatusEnum'
           readOnly: true
         image:
           type: string
@@ -513,69 +607,71 @@ components:
       - name
       - status
       - uuid
-    Contact:
+    BusinessApiStatusEnum:
+      enum:
+      - limited
+      - enabled
+      - review
+      - disabled
+      type: string
+      description: |-
+        * `limited` - Limited
+        * `enabled` - Enabled
+        * `review` - Review
+        * `disabled` - Disabled
+    ChargeEventApi:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         created:
           type: string
           format: date-time
           readOnly: true
-        first_name:
-          type: string
-          maxLength: 150
-        last_name:
-          type: string
-          maxLength: 150
-        business_name:
-          type: string
-          maxLength: 200
-        job_title:
-          type: string
-          maxLength: 200
-        province:
-          type: integer
-          nullable: true
-        city:
-          type: string
-          maxLength: 150
-          minLength: 2
-        street:
-          type: string
-          title: Street address
-          maxLength: 150
-          minLength: 2
-        zip_code:
-          type: string
-          maxLength: 16
-        country:
-          type: string
-          title: Country code
-        email:
-          type: string
-          format: email
-          title: Email address
-          maxLength: 254
-        phone_number:
-          type: string
-          pattern: ^(?=.{3,16}$)[+]{0,1}[0-9() -]+$
-          maxLength: 20
-        image:
-          type: string
-          format: uri
+        type:
+          allOf:
+          - $ref: '#/components/schemas/ChargeEventApiTypeEnum'
           readOnly: true
-          title: Contact image
-        transaction_number:
-          type: integer
+        message:
+          type: string
           readOnly: true
-          default: 0
+        user:
+          $ref: '#/components/schemas/UserMicroApi'
       required:
       - created
-      - id
-      - image
-      - transaction_number
+      - message
+      - type
+      - user
+    ChargeEventApiTypeEnum:
+      enum:
+      - authorised
+      - authorisation_cancelled
+      - authorisation_captured
+      - created
+      - completed
+      - customer_linked
+      - customer_unlinked
+      - dispute_lost
+      - dispute_raised
+      - dispute_resolved
+      - receipt_sent
+      - refunded
+      - partially_refunded
+      - failed
+      type: string
+      description: |-
+        * `authorised` - Authorised
+        * `authorisation_cancelled` - Cancelled
+        * `authorisation_captured` - Captured
+        * `created` - Created
+        * `completed` - Paid
+        * `customer_linked` - Customer added
+        * `customer_unlinked` - Customer removed
+        * `dispute_lost` - Dispute lost
+        * `dispute_raised` - Dispute raised
+        * `dispute_resolved` - Dispute won
+        * `receipt_sent` - Receipt sent
+        * `refunded` - Refunded
+        * `partially_refunded` - Partially refunded
+        * `failed` - Failed
     ContactApi:
       type: object
       properties:
@@ -642,6 +738,33 @@ components:
       - street
       - uuid
       - zip_code
+    ContactMiniApi:
+      type: object
+      properties:
+        first_name:
+          type: string
+          readOnly: true
+        last_name:
+          type: string
+          readOnly: true
+        business_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - business_name
+      - email
+      - first_name
+      - last_name
+      - uuid
     CountryMiniApi:
       type: object
       properties:
@@ -691,11 +814,11 @@ components:
           maxLength: 50
         country:
           type: string
-          description: Country code.
+          description: Country code. get it from /countries endpoint
           maxLength: 2
         province:
           type: integer
-          description: Province ID.
+          description: Province ID. get it from /provinces endpoint
         street:
           type: string
           description: Street address
@@ -711,6 +834,62 @@ components:
       required:
       - first_name
       - last_name
+    CreateInvoiceRequest:
+      type: object
+      properties:
+        currency:
+          type: string
+          description: Currency code. Get the currency code form /currencies api
+          maxLength: 3
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkItem'
+          description: List of items with name and amount
+        discount_percentage:
+          allOf:
+          - $ref: '#/components/schemas/DiscountPercentageEnum'
+          default: 0
+          description: |-
+            Discount percentage
+
+            * `0` - 0%
+            * `5` - 5%
+            * `10` - 10%
+            * `15` - 15%
+            * `20` - 20%
+        contact:
+          type: integer
+          description: Contact ID, Get the contact code form /currencies api
+        invoice_number:
+          type: string
+          description: Invoice number
+          maxLength: 30
+        title:
+          type: string
+          description: Invoice title
+          maxLength: 50
+        note:
+          type: string
+          nullable: true
+          description: A note to describle what you're selling
+          maxLength: 280
+        shipping_address_required:
+          type: boolean
+          default: false
+          description: Whether shipping address is required.
+        due_date:
+          type: string
+          format: date-time
+          description: Invoice due date
+        starts_at:
+          type: string
+          format: date-time
+          description: Invoice start date
+      required:
+      - contact
+      - currency
+      - items
     CreateLinkRequest:
       type: object
       properties:
@@ -790,6 +969,16 @@ components:
       - denominations
       - name
       - uuid
+    CustomField:
+      type: object
+      properties:
+        name:
+          type: string
+        is_required:
+          type: boolean
+      required:
+      - is_required
+      - name
     DiscountPercentageEnum:
       enum:
       - 0
@@ -804,6 +993,560 @@ components:
         * `10` - 10%
         * `15` - 15%
         * `20` - 20%
+    IntervalUnitEnum:
+      enum:
+      - day
+      - week
+      - month
+      - year
+      type: string
+      description: |-
+        * `day` - Day
+        * `week` - Week
+        * `month` - Month
+        * `year` - Year
+    InvoiceDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        reference_id:
+          type: string
+          readOnly: true
+          title: Title
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+          description: URL of the link or invoice,
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        currency:
+          type: string
+          title: Currency code
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status5deEnum'
+          readOnly: true
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        tax:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+          title: Tax amount
+        allow_tip:
+          type: boolean
+          readOnly: true
+        shipping_address_required:
+          type: boolean
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkItemList'
+          readOnly: true
+        taxes:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        note:
+          type: string
+          readOnly: true
+        max_charges:
+          type: integer
+          readOnly: true
+          title: Max Number of Charges
+        expiry:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Expires at
+        charge_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,3})?$
+          readOnly: true
+          default: '0.000'
+        charge_count:
+          type: integer
+          readOnly: true
+          default: 0
+        view_count:
+          type: integer
+          readOnly: true
+          default: 0
+        discount_percentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        tip_percentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserMini'
+          readOnly: true
+        is_locked:
+          type: boolean
+          readOnly: true
+          title: Locked
+        type:
+          allOf:
+          - $ref: '#/components/schemas/InvoiceDetailTypeEnum'
+          readOnly: true
+        contact:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        tip:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        internal_note:
+          type: string
+          readOnly: true
+        invoice_number:
+          type: string
+          readOnly: true
+        service_date:
+          type: string
+          format: date-time
+          readOnly: true
+        due_date:
+          type: string
+          format: date-time
+          readOnly: true
+        external_id:
+          type: string
+          readOnly: true
+        creditpayment:
+          type: integer
+          readOnly: true
+        contact_type:
+          type: string
+          readOnly: true
+        interval_unit:
+          allOf:
+          - $ref: '#/components/schemas/IntervalUnitEnum'
+          readOnly: true
+        interval_count:
+          type: integer
+          readOnly: true
+          title: Due in Days
+        starts_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Schedule starts at
+        ends_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Schedule ends at
+        ends_count:
+          type: integer
+          readOnly: true
+          title: Maximum invoices
+        due_days:
+          type: integer
+          readOnly: true
+          title: Due in Days
+        email:
+          type: string
+          format: email
+          writeOnly: true
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+          default: []
+        files:
+          type: string
+          readOnly: true
+        reminders:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkReminderFiltered'
+          readOnly: true
+        events:
+          type: string
+          readOnly: true
+        template_id:
+          type: integer
+          nullable: true
+          readOnly: true
+        template:
+          allOf:
+          - $ref: '#/components/schemas/InvoiceMini'
+          readOnly: true
+      required:
+      - allow_tip
+      - amount
+      - charge_count
+      - charge_total
+      - code
+      - contact
+      - contact_type
+      - created
+      - creditpayment
+      - currency
+      - discount
+      - due_date
+      - due_days
+      - ends_at
+      - ends_count
+      - events
+      - expiry
+      - external_id
+      - files
+      - id
+      - internal_note
+      - interval_count
+      - interval_unit
+      - invoice_number
+      - is_locked
+      - items
+      - max_charges
+      - note
+      - reference_id
+      - reminders
+      - service_date
+      - shipping_address_required
+      - starts_at
+      - status
+      - tax
+      - template
+      - template_id
+      - tip
+      - title
+      - type
+      - url
+      - user
+      - view_count
+    InvoiceDetailApi:
+      type: object
+      properties:
+        reference_id:
+          type: string
+          readOnly: true
+          title: Title
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+          description: URL of the link or invoice,
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        currency:
+          type: string
+          title: Currency code
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status5deEnum'
+          readOnly: true
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        tax:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+          title: Tax amount
+        allow_tip:
+          type: boolean
+          readOnly: true
+        shipping_address_required:
+          type: boolean
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkItemList'
+          readOnly: true
+        taxes:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        note:
+          type: string
+          readOnly: true
+        expiry:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Expires at
+        discount_percentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        tip_percentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        user:
+          $ref: '#/components/schemas/UserMicroApi'
+        contact:
+          $ref: '#/components/schemas/ContactMiniApi'
+        tip:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        invoice_number:
+          type: string
+          readOnly: true
+        service_date:
+          type: string
+          format: date-time
+          readOnly: true
+        due_date:
+          type: string
+          format: date-time
+          readOnly: true
+        interval_count:
+          type: integer
+          readOnly: true
+          title: Due in Days
+        starts_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Schedule starts at
+        ends_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Schedule ends at
+        due_days:
+          type: integer
+          readOnly: true
+          title: Due in Days
+        email:
+          type: string
+          format: email
+          writeOnly: true
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+          default: []
+        files:
+          type: string
+          readOnly: true
+        reminders:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkReminderFiltered'
+          readOnly: true
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChargeEventApi'
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - allow_tip
+      - amount
+      - code
+      - contact
+      - created
+      - currency
+      - discount
+      - due_date
+      - due_days
+      - ends_at
+      - events
+      - expiry
+      - files
+      - interval_count
+      - invoice_number
+      - items
+      - note
+      - reference_id
+      - reminders
+      - service_date
+      - shipping_address_required
+      - starts_at
+      - status
+      - tax
+      - tip
+      - title
+      - url
+      - user
+      - uuid
+    InvoiceDetailTypeEnum:
+      enum:
+      - template
+      - invoice
+      - full
+      - lite
+      type: string
+      description: |-
+        * `template` - Template
+        * `invoice` - Invoice
+        * `full` - Full
+        * `lite` - Lite
+    InvoiceMini:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        invoice_number:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status5deEnum'
+          readOnly: true
+      required:
+      - id
+      - invoice_number
+      - status
+    LinkApi:
+      type: object
+      properties:
+        title:
+          type: string
+          readOnly: true
+        url:
+          type: string
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        currency:
+          type: string
+          title: Currency code
+        status:
+          type: string
+          readOnly: true
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        allow_tip:
+          type: string
+          readOnly: true
+        shipping_address_required:
+          type: boolean
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkItem'
+        tax:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+          title: Tax amount
+        note:
+          type: string
+          readOnly: true
+        taxes:
+          type: string
+          readOnly: true
+        charge:
+          type: string
+          readOnly: true
+        discount_percentage:
+          type: string
+          readOnly: true
+        tip:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        tip_percentage:
+          type: string
+          readOnly: true
+        due_date:
+          type: string
+          format: date-time
+          readOnly: true
+        contact:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        custom_fields:
+          type: string
+          readOnly: true
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - allow_tip
+      - amount
+      - charge
+      - contact
+      - currency
+      - custom_fields
+      - discount
+      - discount_percentage
+      - due_date
+      - items
+      - note
+      - shipping_address_required
+      - status
+      - tax
+      - taxes
+      - tip
+      - tip_percentage
+      - title
+      - url
+      - uuid
     LinkCustomField:
       type: object
       properties:
@@ -828,6 +1571,48 @@ components:
       required:
       - amount
       - name
+    LinkItemList:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
+      required:
+      - amount
+      - id
+      - name
+    LinkReminderFiltered:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        days:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        invoice:
+          type: integer
+        run_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - days
+      - id
+      - invoice
+      - run_at
+      - title
     PaginatedContacts:
       type: object
       properties:
@@ -844,7 +1629,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Contact'
+            $ref: '#/components/schemas/ContactApi'
       required:
       - count
       - next
@@ -862,18 +1647,67 @@ components:
       required:
       - id
       - name
-    StatusEnum:
+    Status5deEnum:
       enum:
-      - limited
       - enabled
-      - review
       - disabled
+      - archived
+      - paid
+      - unpaid
+      - overdue
+      - cancelled
+      - scheduled
       type: string
       description: |-
-        * `limited` - Limited
         * `enabled` - Enabled
-        * `review` - Review
-        * `disabled` - Disabled
+        * `disabled` - disabled
+        * `archived` - Archived
+        * `paid` - Paid
+        * `unpaid` - Unpaid
+        * `overdue` - Overdue
+        * `cancelled` - Cancelled
+        * `scheduled` - Scheduled
+    UserMicroApi:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - first_name
+      - last_name
+      - uuid
+    UserMini:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+        last_name:
+          type: string
+        job_title:
+          type: string
+          readOnly: true
+        role_name:
+          type: string
+          readOnly: true
+        image:
+          type: string
+          readOnly: true
+      required:
+      - first_name
+      - id
+      - image
+      - job_title
+      - last_name
+      - role_name
   securitySchemes:
     apiKeyAuth:
       type: apiKey

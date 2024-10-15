@@ -43,6 +43,13 @@
       ]
     },
     {
+      "group": "Invoice",
+      "pages": [
+        "api-reference/create-invoice",
+        "api-reference/get-invoice"
+      ]
+    },
+    {
       "group": "Foundational",
       "pages": [
         "api-reference/business-info",
