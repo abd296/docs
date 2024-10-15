@@ -4,9 +4,137 @@ info:
   version: 1.0.0
   description: Nomod API OpenApi Specification
 paths:
+  /v1/countries:
+    get:
+      operationId: Fetch countries
+      description: Fetch all countries sorted by name.
+      parameters:
+      - in: query
+        name: code
+        schema:
+          type: string
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CountryMiniApi'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
+  /v1/countries/{uuid}/provinces:
+    get:
+      operationId: Fetch provinces
+      description: Fetch all countries provinces
+      parameters:
+      - in: query
+        name: code
+        schema:
+          type: string
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Province'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
   /v1/currencies:
     get:
-      operationId: v1_currencies_list
+      operationId: List Currency
       description: Fetch all active currencies sorted by popularity and name.
       parameters:
       - name: ordering
@@ -27,6 +155,188 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CurrenciesApi'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
+  /v1/customer:
+    get:
+      operationId: Fetch Contact
+      description: Retrieve a list of all contacts in the system.
+      summary: List all contacts
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Number of results per page
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  count: 37
+                  next: https://api.nomod.com/v1/customer?page=3
+                  previous: https://api.nomod.com/v1/customer?page=1
+                  results: []
+          description: Paginated list of contacts with metadata
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
+    post:
+      operationId: Create Contact
+      description: Create a new contact with the given details.
+      summary: Create a new contact
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomerRequest'
+        required: true
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContactApi'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
+  /v1/customer/{uuid}:
+    get:
+      operationId: Get Contact
+      description: Retrieve a specific contact by ID.
+      summary: Retrieve a contact
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContactApi'
           description: ''
         '401':
           content:
@@ -107,6 +417,7 @@ paths:
         name: uuid
         schema:
           type: string
+          format: uuid
         required: true
       - in: query
         name: uuid
@@ -182,7 +493,7 @@ paths:
           description: ''
   /v1/zapier/authenticate:
     get:
-      operationId: Authenticate
+      operationId: Zapier Authenticate
       description: test out the api key and get business information.
       tags:
       - v1
@@ -255,49 +566,182 @@ components:
       - name
       - status
       - uuid
+    ContactApi:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        first_name:
+          type: string
+          readOnly: true
+        last_name:
+          type: string
+          readOnly: true
+        business_name:
+          type: string
+          readOnly: true
+        job_title:
+          type: string
+          readOnly: true
+        province:
+          type: integer
+          readOnly: true
+        city:
+          type: string
+          readOnly: true
+        street:
+          type: string
+          readOnly: true
+          title: Street address
+        zip_code:
+          type: string
+          readOnly: true
+        country:
+          type: string
+          title: Country code
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+        phone_number:
+          type: string
+          readOnly: true
+        image:
+          type: string
+          format: uri
+          readOnly: true
+          title: Contact image
+      required:
+      - business_name
+      - city
+      - created
+      - email
+      - first_name
+      - image
+      - job_title
+      - last_name
+      - phone_number
+      - province
+      - street
+      - uuid
+      - zip_code
+    CountryMiniApi:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+          title: Country code
+        name:
+          type: string
+          readOnly: true
+      required:
+      - code
+      - name
+      - uuid
+    CreateCustomerRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          description: First name
+          maxLength: 50
+          minLength: 3
+        last_name:
+          type: string
+          description: Last name
+          maxLength: 50
+          minLength: 3
+        email:
+          type: string
+          format: email
+          description: Email address.
+        phone_number:
+          type: string
+          description: Phone
+          maxLength: 15
+        business_name:
+          type: string
+          description: Business name.
+          maxLength: 50
+        job_title:
+          type: string
+          description: Job Title
+          maxLength: 50
+        country:
+          type: string
+          description: Country code.
+          maxLength: 2
+        province:
+          type: integer
+          description: Province ID.
+        street:
+          type: string
+          description: Street address
+          maxLength: 100
+        city:
+          type: string
+          description: City name.
+          maxLength: 100
+        zip_code:
+          type: string
+          description: Zip/Postal code.
+          maxLength: 16
+      required:
+      - first_name
+      - last_name
     CreateLinkRequest:
       type: object
       properties:
-        title:
-          type: string
-          description: Title of the link.
-          maxLength: 100
         currency:
           type: string
           description: Currency code. Get the currency code form /currencies api
           maxLength: 3
-        discount:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-          default: '0.00'
-          description: Discount amount to be added
-        discount_percentage:
-          type: integer
-          default: 0
-          description: Discount percentage.
-        amount:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-          description: Total amount.
-        note:
-          type: string
-          nullable: true
-          description: Optional note for the link.
-        allow_tip:
-          type: boolean
-          default: false
-          description: Allow tips.
-        shipping_address_required:
-          type: boolean
-          default: false
-          description: Whether shipping address is required.
         items:
           type: array
           items:
             $ref: '#/components/schemas/LinkItem'
           description: List of items with name and amount.
+        title:
+          type: string
+          description: Craft a beautiful name for your link
+          maxLength: 50
+        note:
+          type: string
+          nullable: true
+          description: Type out a quick note describing what you're selling
+          maxLength: 280
+        discount_percentage:
+          allOf:
+          - $ref: '#/components/schemas/DiscountPercentageEnum'
+          default: 0
+          description: |-
+            Discount percentage
+
+            * `0` - 0%
+            * `5` - 5%
+            * `10` - 10%
+            * `15` - 15%
+            * `20` - 20%
+        shipping_address_required:
+          type: boolean
+          default: false
+          description: Whether shipping address is required.
+        allow_tip:
+          type: boolean
+          default: false
+          description: Allow tips.
         customFields:
           type: array
           items:
@@ -305,7 +749,6 @@ components:
           nullable: true
           description: 'Custom fields to add. Note: max you can add 5'
       required:
-      - amount
       - currency
       - items
       - title
@@ -337,6 +780,20 @@ components:
       - denominations
       - name
       - uuid
+    DiscountPercentageEnum:
+      enum:
+      - 0
+      - 5
+      - 10
+      - 15
+      - 20
+      type: integer
+      description: |-
+        * `0` - 0%
+        * `5` - 5%
+        * `10` - 10%
+        * `15` - 15%
+        * `20` - 20%
     LinkCustomField:
       type: object
       properties:
@@ -352,12 +809,26 @@ components:
       properties:
         name:
           type: string
+          description: Item Name
+          maxLength: 50
         amount:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
       required:
       - amount
+      - name
+    Province:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+      required:
+      - id
       - name
     StatusEnum:
       enum:

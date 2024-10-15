@@ -40,7 +40,18 @@
       "pages": [
         "api-reference/business-info",
         "api-reference/get-currencies",
-        "api-reference/create-link"
+        "api-reference/create-link",
+        "api-reference/get-link",
+        "api-reference/get-countries",
+        "api-reference/get-provinces"
+      ]
+    },
+    {
+      "group": "Contacts",
+      "pages": [
+        "api-reference/contacts/create-contact",
+        "api-reference/contacts/get-contacts",
+        "api-reference/contacts/retrieve-contact"
       ]
     },
     {
