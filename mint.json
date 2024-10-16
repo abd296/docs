@@ -60,7 +60,11 @@
         
         "api-reference/contacts/create-contact",
         "api-reference/contacts/get-contacts",
-        "api-reference/contacts/retrieve-contact"
+        "api-reference/contacts/retrieve-contact",
+
+        "api-reference/members/list-team-member",
+        "api-reference/members/get-team-member",
+        "api-reference/members/invite-team-member"
       ]
     },
     {

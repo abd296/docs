@@ -176,7 +176,7 @@ paths:
                     description: Specific error code identifying the error.
                     example: throttled
           description: ''
-  /v1/customer:
+  /v1/customers:
     get:
       operationId: Fetch Contact
       description: Retrieve a list of all contacts in the system.
@@ -296,7 +296,7 @@ paths:
                     description: Specific error code identifying the error.
                     example: throttled
           description: ''
-  /v1/customer/{uuid}:
+  /v1/customers/{uuid}:
     get:
       operationId: Get Contact
       description: Retrieve a specific contact by ID.
@@ -483,6 +483,131 @@ paths:
               schema:
                 description: Link not found
           description: ''
+  /v1/members:
+    get:
+      operationId: Fetch Team member
+      description: Fetch all business team member
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBusinessUserApiList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
+    post:
+      operationId: Create Team Member
+      description: Create Team Member
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteMemberRequest'
+        required: true
+      security:
+      - apiKeyAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  code:
+                    type: object
+                    nullable: true
+                    description: Specific error code identifying the error.
+          description: ''
+  /v1/members/{uuid}:
+    get:
+      operationId: Retrieve Team Member
+      description: Retrieve Team member by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessUserApi'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                description: Team Member not found
+          description: ''
   /v1/wcommerce/authenticate:
     get:
       operationId: Woocommerce Authenticate
@@ -619,6 +744,65 @@ components:
         * `enabled` - Enabled
         * `review` - Review
         * `disabled` - Disabled
+    BusinessUserApi:
+      type: object
+      properties:
+        role:
+          type: string
+          title: Role code
+        first_name:
+          type: string
+          writeOnly: true
+        last_name:
+          type: string
+          writeOnly: true
+        email:
+          type: string
+          format: email
+          writeOnly: true
+        job_title:
+          type: string
+          readOnly: true
+        user:
+          $ref: '#/components/schemas/UserMicroApi'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BusinessUserApiStatusEnum'
+          readOnly: true
+        phone_number:
+          type: string
+          writeOnly: true
+          nullable: true
+          pattern: ^(?=.{3,16}$)[+]{0,1}[0-9() -]+$
+        volume:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,3})?$
+        volume_currency:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - email
+      - first_name
+      - job_title
+      - last_name
+      - role
+      - status
+      - user
+      - uuid
+    BusinessUserApiStatusEnum:
+      enum:
+      - invited
+      - enabled
+      - disabled
+      type: string
+      description: |-
+        * `invited` - Invited
+        * `enabled` - Enabled
+        * `disabled` - Disabled
     ChargeEventApi:
       type: object
       properties:
@@ -654,7 +838,6 @@ components:
       - dispute_resolved
       - receipt_sent
       - refunded
-      - partially_refunded
       - failed
       type: string
       description: |-
@@ -670,7 +853,6 @@ components:
         * `dispute_resolved` - Dispute won
         * `receipt_sent` - Receipt sent
         * `refunded` - Refunded
-        * `partially_refunded` - Partially refunded
         * `failed` - Failed
     ContactApi:
       type: object
@@ -844,7 +1026,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/LinkItem'
+            $ref: '#/components/schemas/LinkItemAPI'
           description: List of items with name and amount
         discount_percentage:
           allOf:
@@ -900,7 +1082,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/LinkItem'
+            $ref: '#/components/schemas/LinkItemAPI'
           description: List of items with name and amount.
         title:
           type: string
@@ -969,16 +1151,6 @@ components:
       - denominations
       - name
       - uuid
-    CustomField:
-      type: object
-      properties:
-        name:
-          type: string
-        is_required:
-          type: boolean
-      required:
-      - is_required
-      - name
     DiscountPercentageEnum:
       enum:
       - 0
@@ -1005,6 +1177,48 @@ components:
         * `week` - Week
         * `month` - Month
         * `year` - Year
+    InviteMemberRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          description: First Name
+          maxLength: 50
+          minLength: 2
+        last_name:
+          type: string
+          description: Last Name
+          maxLength: 50
+          minLength: 2
+        email:
+          type: string
+          format: email
+          description: Email Address
+        phone_number:
+          type: string
+          description: Phone Number i-e +971500123456
+          pattern: ^(?=.{3,16}$)[+]{0,1}[0-9() -]+$
+          maxLength: 15
+        job_title:
+          type: string
+          description: Job Title
+          maxLength: 50
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            Role of the member in the team.
+
+            * `admin` - ADMINISTRATOR
+            * `manager` - MANAGER
+            * `staff` - STAFF
+      required:
+      - email
+      - first_name
+      - job_title
+      - last_name
+      - phone_number
+      - role
     InvoiceDetail:
       type: object
       properties:
@@ -1180,13 +1394,10 @@ components:
           type: string
           format: email
           writeOnly: true
-        custom_fields:
+        files:
           type: array
           items:
-            $ref: '#/components/schemas/CustomField'
-          default: []
-        files:
-          type: string
+            $ref: '#/components/schemas/LinkFileFiltered'
           readOnly: true
         reminders:
           type: array
@@ -1194,7 +1405,9 @@ components:
             $ref: '#/components/schemas/LinkReminderFiltered'
           readOnly: true
         events:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkEvent'
           readOnly: true
         template_id:
           type: integer
@@ -1370,13 +1583,10 @@ components:
           type: string
           format: email
           writeOnly: true
-        custom_fields:
+        files:
           type: array
           items:
-            $ref: '#/components/schemas/CustomField'
-          default: []
-        files:
-          type: string
+            $ref: '#/components/schemas/LinkFileFiltered'
           readOnly: true
         reminders:
           type: array
@@ -1458,6 +1668,7 @@ components:
           readOnly: true
         url:
           type: string
+          format: uri
           readOnly: true
         amount:
           type: string
@@ -1476,7 +1687,7 @@ components:
           pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
           readOnly: true
         allow_tip:
-          type: string
+          type: boolean
           readOnly: true
         shipping_address_required:
           type: boolean
@@ -1501,7 +1712,7 @@ components:
           type: string
           readOnly: true
         discount_percentage:
-          type: string
+          type: integer
           readOnly: true
         tip:
           type: string
@@ -1509,7 +1720,7 @@ components:
           pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
           readOnly: true
         tip_percentage:
-          type: string
+          type: integer
           readOnly: true
         due_date:
           type: string
@@ -1518,9 +1729,6 @@ components:
         contact:
           type: object
           additionalProperties: {}
-          readOnly: true
-        custom_fields:
-          type: string
           readOnly: true
         uuid:
           type: string
@@ -1532,7 +1740,6 @@ components:
       - charge
       - contact
       - currency
-      - custom_fields
       - discount
       - discount_percentage
       - due_date
@@ -1557,7 +1764,88 @@ components:
           default: false
       required:
       - name
+    LinkEvent:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        type:
+          allOf:
+          - $ref: '#/components/schemas/LinkEventTypeEnum'
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserMicro'
+          readOnly: true
+      required:
+      - created
+      - message
+      - type
+      - user
+    LinkEventTypeEnum:
+      enum:
+      - created
+      - email_sent
+      - reminder_sent
+      - updated
+      - overdue
+      - paid
+      - cancelled
+      - archived
+      - enabled
+      - disabled
+      type: string
+      description: |-
+        * `created` - Created
+        * `email_sent` - Email sent
+        * `reminder_sent` - Reminder sent
+        * `updated` - Updated
+        * `overdue` - Overdue
+        * `paid` - Paid
+        * `cancelled` - Cancelled
+        * `archived` - Archived
+        * `enabled` - Enabled
+        * `disabled` - Disabled
+    LinkFileFiltered:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: File title
+        content_type:
+          type: string
+          readOnly: true
+        file:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - content_type
+      - file
+      - id
+      - title
     LinkItem:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - amount
+    LinkItemAPI:
       type: object
       properties:
         name:
@@ -1613,6 +1901,26 @@ components:
       - invoice
       - run_at
       - title
+    PaginatedBusinessUserApiList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessUserApi'
     PaginatedContacts:
       type: object
       properties:
@@ -1647,6 +1955,16 @@ components:
       required:
       - id
       - name
+    RoleEnum:
+      enum:
+      - admin
+      - manager
+      - staff
+      type: string
+      description: |-
+        * `admin` - ADMINISTRATOR
+        * `manager` - MANAGER
+        * `staff` - STAFF
     Status5deEnum:
       enum:
       - enabled
@@ -1667,6 +1985,20 @@ components:
         * `overdue` - Overdue
         * `cancelled` - Cancelled
         * `scheduled` - Scheduled
+    UserMicro:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+        last_name:
+          type: string
+      required:
+      - first_name
+      - id
+      - last_name
     UserMicroApi:
       type: object
       properties:
@@ -1700,6 +2032,7 @@ components:
           readOnly: true
         image:
           type: string
+          format: uri
           readOnly: true
       required:
       - first_name
