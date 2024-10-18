@@ -4,6 +4,73 @@ info:
   version: 1.0.0
   description: Nomod API OpenApi Specification
 paths:
+  /v1/charges:
+    get:
+      operationId: Fetch Charges
+      description: Fetch all charges list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: search
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedChargeApiList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
   /v1/countries:
     get:
       operationId: Fetch countries
@@ -192,6 +259,11 @@ paths:
         schema:
           type: integer
         description: Number of results per page
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Search for first name, last name, email
       tags:
       - v1
       security:
@@ -356,6 +428,72 @@ paths:
                     example: throttled
           description: ''
   /v1/invoice:
+    get:
+      operationId: List Link
+      description: Fetch all links.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: search by title or country code
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInvoiceDetailApiList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
     post:
       operationId: Generate Invoice
       description: Generate Invoice.
@@ -420,6 +558,101 @@ paths:
                 description: Invoice not found
           description: ''
   /v1/link:
+    get:
+      operationId: List Link_2
+      description: Fetch all links.
+      parameters:
+      - in: query
+        name: allow_tip
+        schema:
+          type: boolean
+        description: Allow Tip
+      - in: query
+        name: amount
+        schema:
+          type: number
+          format: double
+        description: Amount limit
+      - in: query
+        name: country
+        schema:
+          type: string
+        description: country code i-e AED
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: shipping_address_required
+        schema:
+          type: boolean
+        description: Allow Shipping Address
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - disabled
+          - enabled
+        description: link staus
+      - in: query
+        name: title
+        schema:
+          type: string
+        description: link title
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLinkApiList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
     post:
       operationId: Generate Link
       description: Generate link.
@@ -845,6 +1078,176 @@ components:
         * `invited` - Invited
         * `enabled` - Enabled
         * `disabled` - Disabled
+    CardData:
+      type: object
+      properties:
+        card_number:
+          type: string
+        expiry_month:
+          type: string
+        expiry_year:
+          type: string
+        security_code:
+          type: string
+          nullable: true
+        card_holder_name:
+          type: string
+          nullable: true
+      required:
+      - card_number
+      - expiry_month
+      - expiry_year
+    ChargeApi:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        taxes:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChargeItem'
+        currency:
+          type: string
+          title: Currency code
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ChargeApiStatusEnum'
+          readOnly: true
+        tip:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        tax:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+          title: Tax amount
+        total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+          title: Total amount
+        refund_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+          title: Refund total amount
+        note:
+          type: string
+          readOnly: true
+        contact:
+          type: integer
+          readOnly: true
+        discount_percentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        tip_percentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        user:
+          $ref: '#/components/schemas/UserMicroApi'
+        source:
+          $ref: '#/components/schemas/ChargeSource'
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomFieldAnswer'
+          default: []
+        refunds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChargeRefund'
+        events:
+          type: string
+          readOnly: true
+        settlement_currency:
+          type: string
+          title: Currency code
+        fee:
+          type: string
+          readOnly: true
+        fx_fee:
+          type: string
+          readOnly: true
+        fee_tax:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        net:
+          type: string
+          readOnly: true
+        network_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - contact
+      - created
+      - currency
+      - discount
+      - events
+      - fee
+      - fee_tax
+      - fx_fee
+      - items
+      - net
+      - network_cost
+      - note
+      - refund_total
+      - settlement_currency
+      - status
+      - tax
+      - tip
+      - total
+      - user
+      - uuid
+    ChargeApiStatusEnum:
+      enum:
+      - authorised
+      - cancelled
+      - created
+      - disputed
+      - paid
+      - refunded
+      - partially_refunded
+      - failed
+      type: string
+      description: |-
+        * `authorised` - Authorised
+        * `cancelled` - Cancelled
+        * `created` - Created
+        * `disputed` - Disputed
+        * `paid` - Paid
+        * `refunded` - Refunded
+        * `partially_refunded` - Partially refunded
+        * `failed` - Failed
     ChargeEventApi:
       type: object
       properties:
@@ -880,6 +1283,7 @@ components:
       - dispute_resolved
       - receipt_sent
       - refunded
+      - partially_refunded
       - failed
       type: string
       description: |-
@@ -895,7 +1299,91 @@ components:
         * `dispute_resolved` - Dispute won
         * `receipt_sent` - Receipt sent
         * `refunded` - Refunded
+        * `partially_refunded` - Partially refunded
         * `failed` - Failed
+    ChargeItem:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - amount
+    ChargeRefund:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+      required:
+      - amount
+      - created
+    ChargeSource:
+      type: object
+      properties:
+        type:
+          type: string
+        token:
+          type: string
+          nullable: true
+        expiry_month:
+          type: string
+          nullable: true
+        expiry_year:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        scheme:
+          type: string
+          nullable: true
+        scheme_local:
+          type: string
+          nullable: true
+        last4:
+          type: string
+          nullable: true
+        bin:
+          type: string
+          nullable: true
+        card_type:
+          type: string
+          nullable: true
+        card_category:
+          type: string
+          nullable: true
+        issuer:
+          type: string
+          nullable: true
+        issuer_country:
+          type: string
+          nullable: true
+        product_id:
+          type: string
+          nullable: true
+        product_type:
+          type: string
+          nullable: true
+        expires_on:
+          type: string
+          nullable: true
+        card_data:
+          allOf:
+          - $ref: '#/components/schemas/CardData'
+          nullable: true
+      required:
+      - type
     ContactApi:
       type: object
       properties:
@@ -1193,6 +1681,25 @@ components:
       - denominations
       - name
       - uuid
+    CustomField:
+      type: object
+      properties:
+        name:
+          type: string
+        is_required:
+          type: boolean
+      required:
+      - is_required
+      - name
+    CustomFieldAnswer:
+      type: object
+      properties:
+        name:
+          type: string
+        answer:
+          type: string
+      required:
+      - name
     DiscountPercentageEnum:
       enum:
       - 0
@@ -1436,6 +1943,11 @@ components:
           type: string
           format: email
           writeOnly: true
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+          default: []
         files:
           type: array
           items:
@@ -1625,6 +2137,11 @@ components:
           type: string
           format: email
           writeOnly: true
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+          default: []
         files:
           type: array
           items:
@@ -1772,6 +2289,9 @@ components:
           type: object
           additionalProperties: {}
           readOnly: true
+        custom_fields:
+          type: string
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -1782,6 +2302,7 @@ components:
       - charge
       - contact
       - currency
+      - custom_fields
       - discount
       - discount_percentage
       - due_date
@@ -1963,6 +2484,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BusinessUserApi'
+    PaginatedChargeApiList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChargeApi'
     PaginatedContacts:
       type: object
       properties:
@@ -1985,6 +2526,46 @@ components:
       - next
       - previous
       - results
+    PaginatedInvoiceDetailApiList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceDetailApi'
+    PaginatedLinkApiList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkApi'
     PatchedLinkUpdateApi:
       type: object
       properties:

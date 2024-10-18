@@ -38,16 +38,24 @@
     {
       "group": "Link",
       "pages": [
+        "api-reference/list-links",
         "api-reference/create-link",
-        "api-reference/get-link",
+        "api-reference/get-link-detail",
         "api-reference/update-link"
       ]
     },
     {
       "group": "Invoice",
       "pages": [
+        "api-reference/list-invoices",
         "api-reference/create-invoice",
         "api-reference/get-invoice"
+      ]
+    },
+    {
+      "group": "Charge",
+      "pages": [
+        "api-reference/list-charges"
       ]
     },
     {
