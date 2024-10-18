@@ -483,6 +483,48 @@ paths:
               schema:
                 description: Link not found
           description: ''
+  /v1/link/{uuid}/edit:
+    patch:
+      operationId: Edit Link
+      description: Enable, disable, or archive link.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLinkUpdateApi'
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkApi'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  code:
+                    type: object
+                    nullable: true
+                    description: Specific error code identifying the error.
+          description: ''
   /v1/members:
     get:
       operationId: Fetch Team member
@@ -1943,6 +1985,15 @@ components:
       - next
       - previous
       - results
+    PatchedLinkUpdateApi:
+      type: object
+      properties:
+        enable:
+          type: boolean
+        disable:
+          type: boolean
+        delete:
+          type: boolean
     Province:
       type: object
       properties:

@@ -39,7 +39,8 @@
       "group": "Link",
       "pages": [
         "api-reference/create-link",
-        "api-reference/get-link"
+        "api-reference/get-link",
+        "api-reference/update-link"
       ]
     },
     {
