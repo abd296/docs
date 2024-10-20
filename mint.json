@@ -49,13 +49,16 @@
       "pages": [
         "api-reference/list-invoices",
         "api-reference/create-invoice",
-        "api-reference/get-invoice"
+        "api-reference/get-invoice",
+        "api-reference/update-invoice"
       ]
     },
     {
       "group": "Charge",
       "pages": [
-        "api-reference/list-charges"
+        "api-reference/list-charges",
+        "api-reference/list-transactions",
+        "api-reference/get-transaction"
       ]
     },
     {

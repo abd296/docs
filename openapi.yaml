@@ -429,9 +429,14 @@ paths:
           description: ''
   /v1/invoice:
     get:
-      operationId: List Link
-      description: Fetch all links.
+      operationId: List Invoice
+      description: Fetch all Invoices.
       parameters:
+      - in: query
+        name: currency
+        schema:
+          type: string
+        description: currency code i-e AED
       - name: page
         required: false
         in: query
@@ -449,6 +454,22 @@ paths:
         schema:
           type: string
         description: search by title or country code
+      - in: query
+        name: shipping_address_required
+        schema:
+          type: boolean
+        description: Ask for Shipping Address
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - cancelled
+          - overdue
+          - paid
+          - scheduled
+          - unpaid
+        description: invoice staus
       tags:
       - v1
       security:
@@ -512,7 +533,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InvoiceDetail'
+                $ref: '#/components/schemas/InvoiceDetailApi'
           description: ''
         '400':
           content:
@@ -557,9 +578,51 @@ paths:
               schema:
                 description: Invoice not found
           description: ''
+  /v1/invoice/{uuid}/edit:
+    patch:
+      operationId: Edit Invoice
+      description: Cancel link.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedInvoiceUpdateApi'
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceDetailApi'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  code:
+                    type: object
+                    nullable: true
+                    description: Specific error code identifying the error.
+          description: ''
   /v1/link:
     get:
-      operationId: List Link_2
+      operationId: List Link
       description: Fetch all links.
       parameters:
       - in: query
@@ -574,10 +637,10 @@ paths:
           format: double
         description: Amount limit
       - in: query
-        name: country
+        name: currency
         schema:
           type: string
-        description: country code i-e AED
+        description: currency code i-e AED
       - name: page
         required: false
         in: query
@@ -603,11 +666,6 @@ paths:
           - disabled
           - enabled
         description: link staus
-      - in: query
-        name: title
-        schema:
-          type: string
-        description: link title
       tags:
       - v1
       security:
@@ -762,19 +820,6 @@ paths:
     get:
       operationId: Fetch Team member
       description: Fetch all business team member
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
       tags:
       - v1
       security:
@@ -784,7 +829,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedBusinessUserApiList'
+                type: array
+                items:
+                  $ref: '#/components/schemas/BusinessUserApi'
           description: ''
         '401':
           content:
@@ -838,7 +885,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InvoiceDetail'
+                $ref: '#/components/schemas/BusinessUserApi'
           description: ''
         '400':
           content:
@@ -882,6 +929,96 @@ paths:
             application/json:
               schema:
                 description: Team Member not found
+          description: ''
+  /v1/transaction:
+    get:
+      operationId: Fetch Transaction
+      description: Fetch all Transaction list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBalanceTransactionApiList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
+  /v1/transaction/{uuid}:
+    get:
+      operationId: Retrieve Transaction
+      description: Retrieve a specific transaction
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceTransactionApi'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                description: Transaction not found
           description: ''
   /v1/wcommerce/authenticate:
     get:
@@ -983,6 +1120,44 @@ paths:
           description: ''
 components:
   schemas:
+    BalanceTransactionApi:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        is_debit:
+          type: boolean
+          readOnly: true
+          title: Debit
+        type:
+          type: string
+          readOnly: true
+        payable_at:
+          type: string
+          format: date-time
+          readOnly: true
+        currency:
+          type: string
+          title: Currency code
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - amount
+      - created
+      - currency
+      - is_debit
+      - payable_at
+      - type
+      - uuid
     BusinessApi:
       type: object
       properties:
@@ -1179,16 +1354,19 @@ components:
           items:
             $ref: '#/components/schemas/ChargeRefund'
         events:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/ChargeEventApi'
           readOnly: true
         settlement_currency:
           type: string
           title: Currency code
         fee:
-          type: string
+          type: number
+          nullable: true
           readOnly: true
         fx_fee:
-          type: string
+          type: number
+          nullable: true
           readOnly: true
         fee_tax:
           type: string
@@ -1196,7 +1374,8 @@ components:
           pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
           readOnly: true
         net:
-          type: string
+          type: number
+          nullable: true
           readOnly: true
         network_cost:
           type: string
@@ -1257,7 +1436,7 @@ components:
           readOnly: true
         type:
           allOf:
-          - $ref: '#/components/schemas/ChargeEventApiTypeEnum'
+          - $ref: '#/components/schemas/TypeEnum'
           readOnly: true
         message:
           type: string
@@ -1269,38 +1448,6 @@ components:
       - message
       - type
       - user
-    ChargeEventApiTypeEnum:
-      enum:
-      - authorised
-      - authorisation_cancelled
-      - authorisation_captured
-      - created
-      - completed
-      - customer_linked
-      - customer_unlinked
-      - dispute_lost
-      - dispute_raised
-      - dispute_resolved
-      - receipt_sent
-      - refunded
-      - partially_refunded
-      - failed
-      type: string
-      description: |-
-        * `authorised` - Authorised
-        * `authorisation_cancelled` - Cancelled
-        * `authorisation_captured` - Captured
-        * `created` - Created
-        * `completed` - Paid
-        * `customer_linked` - Customer added
-        * `customer_unlinked` - Customer removed
-        * `dispute_lost` - Dispute lost
-        * `dispute_raised` - Dispute raised
-        * `dispute_resolved` - Dispute won
-        * `receipt_sent` - Receipt sent
-        * `refunded` - Refunded
-        * `partially_refunded` - Partially refunded
-        * `failed` - Failed
     ChargeItem:
       type: object
       properties:
@@ -1714,18 +1861,6 @@ components:
         * `10` - 10%
         * `15` - 15%
         * `20` - 20%
-    IntervalUnitEnum:
-      enum:
-      - day
-      - week
-      - month
-      - year
-      type: string
-      description: |-
-        * `day` - Day
-        * `week` - Week
-        * `month` - Month
-        * `year` - Year
     InviteMemberRequest:
       type: object
       properties:
@@ -1768,253 +1903,6 @@ components:
       - last_name
       - phone_number
       - role
-    InvoiceDetail:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        reference_id:
-          type: string
-          readOnly: true
-          title: Title
-        created:
-          type: string
-          format: date-time
-          readOnly: true
-        title:
-          type: string
-          readOnly: true
-        code:
-          type: string
-          readOnly: true
-        url:
-          type: string
-          format: uri
-          readOnly: true
-          description: URL of the link or invoice,
-        amount:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
-          readOnly: true
-        currency:
-          type: string
-          title: Currency code
-        status:
-          allOf:
-          - $ref: '#/components/schemas/Status5deEnum'
-          readOnly: true
-        discount:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
-          readOnly: true
-        tax:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
-          readOnly: true
-          title: Tax amount
-        allow_tip:
-          type: boolean
-          readOnly: true
-        shipping_address_required:
-          type: boolean
-          readOnly: true
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/LinkItemList'
-          readOnly: true
-        taxes:
-          type: array
-          items:
-            type: integer
-            writeOnly: true
-          writeOnly: true
-        note:
-          type: string
-          readOnly: true
-        max_charges:
-          type: integer
-          readOnly: true
-          title: Max Number of Charges
-        expiry:
-          type: string
-          format: date-time
-          readOnly: true
-          title: Expires at
-        charge_total:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,12}(?:\.\d{0,3})?$
-          readOnly: true
-          default: '0.000'
-        charge_count:
-          type: integer
-          readOnly: true
-          default: 0
-        view_count:
-          type: integer
-          readOnly: true
-          default: 0
-        discount_percentage:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
-          nullable: true
-        tip_percentage:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
-          nullable: true
-        user:
-          allOf:
-          - $ref: '#/components/schemas/UserMini'
-          readOnly: true
-        is_locked:
-          type: boolean
-          readOnly: true
-          title: Locked
-        type:
-          allOf:
-          - $ref: '#/components/schemas/InvoiceDetailTypeEnum'
-          readOnly: true
-        contact:
-          type: object
-          additionalProperties: {}
-          readOnly: true
-        tip:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
-          readOnly: true
-        internal_note:
-          type: string
-          readOnly: true
-        invoice_number:
-          type: string
-          readOnly: true
-        service_date:
-          type: string
-          format: date-time
-          readOnly: true
-        due_date:
-          type: string
-          format: date-time
-          readOnly: true
-        external_id:
-          type: string
-          readOnly: true
-        creditpayment:
-          type: integer
-          readOnly: true
-        contact_type:
-          type: string
-          readOnly: true
-        interval_unit:
-          allOf:
-          - $ref: '#/components/schemas/IntervalUnitEnum'
-          readOnly: true
-        interval_count:
-          type: integer
-          readOnly: true
-          title: Due in Days
-        starts_at:
-          type: string
-          format: date-time
-          readOnly: true
-          title: Schedule starts at
-        ends_at:
-          type: string
-          format: date-time
-          readOnly: true
-          title: Schedule ends at
-        ends_count:
-          type: integer
-          readOnly: true
-          title: Maximum invoices
-        due_days:
-          type: integer
-          readOnly: true
-          title: Due in Days
-        email:
-          type: string
-          format: email
-          writeOnly: true
-        custom_fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/CustomField'
-          default: []
-        files:
-          type: array
-          items:
-            $ref: '#/components/schemas/LinkFileFiltered'
-          readOnly: true
-        reminders:
-          type: array
-          items:
-            $ref: '#/components/schemas/LinkReminderFiltered'
-          readOnly: true
-        events:
-          type: array
-          items:
-            $ref: '#/components/schemas/LinkEvent'
-          readOnly: true
-        template_id:
-          type: integer
-          nullable: true
-          readOnly: true
-        template:
-          allOf:
-          - $ref: '#/components/schemas/InvoiceMini'
-          readOnly: true
-      required:
-      - allow_tip
-      - amount
-      - charge_count
-      - charge_total
-      - code
-      - contact
-      - contact_type
-      - created
-      - creditpayment
-      - currency
-      - discount
-      - due_date
-      - due_days
-      - ends_at
-      - ends_count
-      - events
-      - expiry
-      - external_id
-      - files
-      - id
-      - internal_note
-      - interval_count
-      - interval_unit
-      - invoice_number
-      - is_locked
-      - items
-      - max_charges
-      - note
-      - reference_id
-      - reminders
-      - service_date
-      - shipping_address_required
-      - starts_at
-      - status
-      - tax
-      - template
-      - template_id
-      - tip
-      - title
-      - type
-      - url
-      - user
-      - view_count
     InvoiceDetailApi:
       type: object
       properties:
@@ -2047,7 +1935,7 @@ components:
           title: Currency code
         status:
           allOf:
-          - $ref: '#/components/schemas/Status5deEnum'
+          - $ref: '#/components/schemas/InvoiceDetailApiStatusEnum'
           readOnly: true
         discount:
           type: string
@@ -2190,35 +2078,26 @@ components:
       - url
       - user
       - uuid
-    InvoiceDetailTypeEnum:
+    InvoiceDetailApiStatusEnum:
       enum:
-      - template
-      - invoice
-      - full
-      - lite
+      - enabled
+      - disabled
+      - archived
+      - paid
+      - unpaid
+      - overdue
+      - cancelled
+      - scheduled
       type: string
       description: |-
-        * `template` - Template
-        * `invoice` - Invoice
-        * `full` - Full
-        * `lite` - Lite
-    InvoiceMini:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        invoice_number:
-          type: string
-          readOnly: true
-        status:
-          allOf:
-          - $ref: '#/components/schemas/Status5deEnum'
-          readOnly: true
-      required:
-      - id
-      - invoice_number
-      - status
+        * `enabled` - Enabled
+        * `disabled` - disabled
+        * `archived` - Archived
+        * `paid` - Paid
+        * `unpaid` - Unpaid
+        * `overdue` - Overdue
+        * `cancelled` - Cancelled
+        * `scheduled` - Scheduled
     LinkApi:
       type: object
       properties:
@@ -2265,7 +2144,8 @@ components:
           type: string
           readOnly: true
         taxes:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/Tax'
           readOnly: true
         charge:
           type: string
@@ -2290,7 +2170,8 @@ components:
           additionalProperties: {}
           readOnly: true
         custom_fields:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/CustomField'
           readOnly: true
         uuid:
           type: string
@@ -2327,53 +2208,6 @@ components:
           default: false
       required:
       - name
-    LinkEvent:
-      type: object
-      properties:
-        created:
-          type: string
-          format: date-time
-          readOnly: true
-        type:
-          allOf:
-          - $ref: '#/components/schemas/LinkEventTypeEnum'
-          readOnly: true
-        message:
-          type: string
-          readOnly: true
-        user:
-          allOf:
-          - $ref: '#/components/schemas/UserMicro'
-          readOnly: true
-      required:
-      - created
-      - message
-      - type
-      - user
-    LinkEventTypeEnum:
-      enum:
-      - created
-      - email_sent
-      - reminder_sent
-      - updated
-      - overdue
-      - paid
-      - cancelled
-      - archived
-      - enabled
-      - disabled
-      type: string
-      description: |-
-        * `created` - Created
-        * `email_sent` - Email sent
-        * `reminder_sent` - Reminder sent
-        * `updated` - Updated
-        * `overdue` - Overdue
-        * `paid` - Paid
-        * `cancelled` - Cancelled
-        * `archived` - Archived
-        * `enabled` - Enabled
-        * `disabled` - Disabled
     LinkFileFiltered:
       type: object
       properties:
@@ -2464,7 +2298,7 @@ components:
       - invoice
       - run_at
       - title
-    PaginatedBusinessUserApiList:
+    PaginatedBalanceTransactionApiList:
       type: object
       properties:
         count:
@@ -2483,7 +2317,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/BusinessUserApi'
+            $ref: '#/components/schemas/BalanceTransactionApi'
     PaginatedChargeApiList:
       type: object
       properties:
@@ -2566,6 +2400,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LinkApi'
+    PatchedInvoiceUpdateApi:
+      type: object
+      properties:
+        cancel:
+          type: boolean
     PatchedLinkUpdateApi:
       type: object
       properties:
@@ -2597,40 +2436,58 @@ components:
         * `admin` - ADMINISTRATOR
         * `manager` - MANAGER
         * `staff` - STAFF
-    Status5deEnum:
-      enum:
-      - enabled
-      - disabled
-      - archived
-      - paid
-      - unpaid
-      - overdue
-      - cancelled
-      - scheduled
-      type: string
-      description: |-
-        * `enabled` - Enabled
-        * `disabled` - disabled
-        * `archived` - Archived
-        * `paid` - Paid
-        * `unpaid` - Unpaid
-        * `overdue` - Overdue
-        * `cancelled` - Cancelled
-        * `scheduled` - Scheduled
-    UserMicro:
+    Tax:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        first_name:
+        name:
           type: string
-        last_name:
+        mode:
           type: string
+        mode_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+          default: '0.000'
+        value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+          default: '0.000'
       required:
-      - first_name
-      - id
-      - last_name
+      - mode
+      - name
+    TypeEnum:
+      enum:
+      - authorised
+      - authorisation_cancelled
+      - authorisation_captured
+      - created
+      - completed
+      - customer_linked
+      - customer_unlinked
+      - dispute_lost
+      - dispute_raised
+      - dispute_resolved
+      - receipt_sent
+      - refunded
+      - partially_refunded
+      - failed
+      type: string
+      description: |-
+        * `authorised` - Authorised
+        * `authorisation_cancelled` - Cancelled
+        * `authorisation_captured` - Captured
+        * `created` - Created
+        * `completed` - Paid
+        * `customer_linked` - Customer added
+        * `customer_unlinked` - Customer removed
+        * `dispute_lost` - Dispute lost
+        * `dispute_raised` - Dispute raised
+        * `dispute_resolved` - Dispute won
+        * `receipt_sent` - Receipt sent
+        * `refunded` - Refunded
+        * `partially_refunded` - Partially refunded
+        * `failed` - Failed
     UserMicroApi:
       type: object
       properties:
@@ -2646,33 +2503,6 @@ components:
       - first_name
       - last_name
       - uuid
-    UserMini:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        first_name:
-          type: string
-        last_name:
-          type: string
-        job_title:
-          type: string
-          readOnly: true
-        role_name:
-          type: string
-          readOnly: true
-        image:
-          type: string
-          format: uri
-          readOnly: true
-      required:
-      - first_name
-      - id
-      - image
-      - job_title
-      - last_name
-      - role_name
   securitySchemes:
     apiKeyAuth:
       type: apiKey
