@@ -57,6 +57,7 @@
       "group": "Charge",
       "pages": [
         "api-reference/list-charges",
+        "api-reference/get-charge",
         "api-reference/list-transactions",
         "api-reference/get-transaction"
       ]

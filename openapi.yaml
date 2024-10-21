@@ -71,6 +71,45 @@ paths:
                     description: Specific error code identifying the error.
                     example: throttled
           description: ''
+  /v1/charges/{uuid}:
+    get:
+      operationId: Retrieve Charge
+      description: Retrieve Charge by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChargeApi'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Object Not found
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_found
+          description: ''
   /v1/countries:
     get:
       operationId: Fetch countries
@@ -158,7 +197,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Province'
           description: ''
-        '401':
+        '404':
           content:
             application/json:
               schema:
@@ -168,29 +207,12 @@ paths:
                     type: string
                     nullable: false
                     description: Text of the error message.
-                    example: Authentication credentials were not provided.
+                    example: Object Not found
                   code:
                     type: object
                     nullable: false
                     description: Specific error code identifying the error.
-                    example: not_authenticated
-          description: ''
-        '429':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    nullable: false
-                    description: Text of the error message.
-                    example: Request was throttled. Expected available in 1 second.
-                  code:
-                    type: object
-                    nullable: false
-                    description: Specific error code identifying the error.
-                    example: throttled
+                    example: not_found
           description: ''
   /v1/currencies:
     get:
@@ -393,7 +415,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ContactApi'
           description: ''
-        '401':
+        '404':
           content:
             application/json:
               schema:
@@ -403,31 +425,14 @@ paths:
                     type: string
                     nullable: false
                     description: Text of the error message.
-                    example: Authentication credentials were not provided.
+                    example: Object Not found
                   code:
                     type: object
                     nullable: false
                     description: Specific error code identifying the error.
-                    example: not_authenticated
+                    example: not_found
           description: ''
-        '429':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    nullable: false
-                    description: Text of the error message.
-                    example: Request was throttled. Expected available in 1 second.
-                  code:
-                    type: object
-                    nullable: false
-                    description: Specific error code identifying the error.
-                    example: throttled
-          description: ''
-  /v1/invoice:
+  /v1/invoices:
     get:
       operationId: List Invoice
       description: Fetch all Invoices.
@@ -550,7 +555,7 @@ paths:
                     nullable: true
                     description: Specific error code identifying the error.
           description: ''
-  /v1/invoice/{uuid}:
+  /v1/invoices/{uuid}:
     get:
       operationId: Retrieve Invoice
       description: Retrieve Invoice details by UUID.
@@ -576,12 +581,23 @@ paths:
           content:
             application/json:
               schema:
-                description: Invoice not found
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Object Not found
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_found
           description: ''
-  /v1/invoice/{uuid}/edit:
+  /v1/invoices/{uuid}/edit:
     patch:
       operationId: Edit Invoice
-      description: Cancel link.
+      description: Update the invoice.
       parameters:
       - in: path
         name: uuid
@@ -620,7 +636,24 @@ paths:
                     nullable: true
                     description: Specific error code identifying the error.
           description: ''
-  /v1/link:
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Object Not found
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_found
+          description: ''
+  /v1/links:
     get:
       operationId: List Link
       description: Fetch all links.
@@ -631,16 +664,11 @@ paths:
           type: boolean
         description: Allow Tip
       - in: query
-        name: amount
-        schema:
-          type: number
-          format: double
-        description: Amount limit
-      - in: query
         name: currency
         schema:
           type: string
-        description: currency code i-e AED
+        description: currency code i-e AED, fetch the currency code from /currencies
+          apis
       - name: page
         required: false
         in: query
@@ -746,7 +774,7 @@ paths:
                     nullable: true
                     description: Specific error code identifying the error.
           description: ''
-  /v1/link/{uuid}:
+  /v1/links/{uuid}:
     get:
       operationId: Retrieve Link
       description: Retrieve link details by UUID.
@@ -772,9 +800,20 @@ paths:
           content:
             application/json:
               schema:
-                description: Link not found
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Object Not found
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_found
           description: ''
-  /v1/link/{uuid}/edit:
+  /v1/links/{uuid}/edit:
     patch:
       operationId: Edit Link
       description: Enable, disable, or archive link.
@@ -815,6 +854,23 @@ paths:
                     type: object
                     nullable: true
                     description: Specific error code identifying the error.
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Object Not found
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_found
           description: ''
   /v1/members:
     get:
@@ -928,9 +984,20 @@ paths:
           content:
             application/json:
               schema:
-                description: Team Member not found
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Object Not found
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_found
           description: ''
-  /v1/transaction:
+  /v1/transactions:
     get:
       operationId: Fetch Transaction
       description: Fetch all Transaction list
@@ -992,7 +1059,7 @@ paths:
                     description: Specific error code identifying the error.
                     example: throttled
           description: ''
-  /v1/transaction/{uuid}:
+  /v1/transactions/{uuid}:
     get:
       operationId: Retrieve Transaction
       description: Retrieve a specific transaction
@@ -1018,7 +1085,18 @@ paths:
           content:
             application/json:
               schema:
-                description: Transaction not found
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Object Not found
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_found
           description: ''
   /v1/wcommerce/authenticate:
     get:
@@ -1253,25 +1331,6 @@ components:
         * `invited` - Invited
         * `enabled` - Enabled
         * `disabled` - Disabled
-    CardData:
-      type: object
-      properties:
-        card_number:
-          type: string
-        expiry_month:
-          type: string
-        expiry_year:
-          type: string
-        security_code:
-          type: string
-          nullable: true
-        card_holder_name:
-          type: string
-          nullable: true
-      required:
-      - card_number
-      - expiry_month
-      - expiry_year
     ChargeApi:
       type: object
       properties:
@@ -1318,12 +1377,6 @@ components:
           pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
           readOnly: true
           title: Total amount
-        refund_total:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
-          readOnly: true
-          title: Refund total amount
         note:
           type: string
           readOnly: true
@@ -1342,20 +1395,10 @@ components:
           nullable: true
         user:
           $ref: '#/components/schemas/UserMicroApi'
-        source:
-          $ref: '#/components/schemas/ChargeSource'
-        custom_fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/CustomFieldAnswer'
-          default: []
-        refunds:
-          type: array
-          items:
-            $ref: '#/components/schemas/ChargeRefund'
         events:
-          allOf:
-          - $ref: '#/components/schemas/ChargeEventApi'
+          type: array
+          items:
+            $ref: '#/components/schemas/ChargeEventApi'
           readOnly: true
         settlement_currency:
           type: string
@@ -1399,7 +1442,6 @@ components:
       - net
       - network_cost
       - note
-      - refund_total
       - settlement_currency
       - status
       - tax
@@ -1415,7 +1457,6 @@ components:
       - disputed
       - paid
       - refunded
-      - partially_refunded
       - failed
       type: string
       description: |-
@@ -1425,7 +1466,6 @@ components:
         * `disputed` - Disputed
         * `paid` - Paid
         * `refunded` - Refunded
-        * `partially_refunded` - Partially refunded
         * `failed` - Failed
     ChargeEventApi:
       type: object
@@ -1460,77 +1500,6 @@ components:
           maxLength: 100
       required:
       - amount
-    ChargeRefund:
-      type: object
-      properties:
-        created:
-          type: string
-          format: date-time
-          readOnly: true
-        amount:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
-          readOnly: true
-      required:
-      - amount
-      - created
-    ChargeSource:
-      type: object
-      properties:
-        type:
-          type: string
-        token:
-          type: string
-          nullable: true
-        expiry_month:
-          type: string
-          nullable: true
-        expiry_year:
-          type: string
-          nullable: true
-        name:
-          type: string
-          nullable: true
-        scheme:
-          type: string
-          nullable: true
-        scheme_local:
-          type: string
-          nullable: true
-        last4:
-          type: string
-          nullable: true
-        bin:
-          type: string
-          nullable: true
-        card_type:
-          type: string
-          nullable: true
-        card_category:
-          type: string
-          nullable: true
-        issuer:
-          type: string
-          nullable: true
-        issuer_country:
-          type: string
-          nullable: true
-        product_id:
-          type: string
-          nullable: true
-        product_type:
-          type: string
-          nullable: true
-        expires_on:
-          type: string
-          nullable: true
-        card_data:
-          allOf:
-          - $ref: '#/components/schemas/CardData'
-          nullable: true
-      required:
-      - type
     ContactApi:
       type: object
       properties:
@@ -1718,8 +1687,9 @@ components:
             * `15` - 15%
             * `20` - 20%
         contact:
-          type: integer
-          description: Contact ID, Get the contact code form /currencies api
+          type: string
+          format: uuid
+          description: Contact ID, Get the contact uuid form /contacts api
         invoice_number:
           type: string
           description: Invoice number
@@ -1828,25 +1798,6 @@ components:
       - denominations
       - name
       - uuid
-    CustomField:
-      type: object
-      properties:
-        name:
-          type: string
-        is_required:
-          type: boolean
-      required:
-      - is_required
-      - name
-    CustomFieldAnswer:
-      type: object
-      properties:
-        name:
-          type: string
-        answer:
-          type: string
-      required:
-      - name
     DiscountPercentageEnum:
       enum:
       - 0
@@ -2025,11 +1976,6 @@ components:
           type: string
           format: email
           writeOnly: true
-        custom_fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/CustomField'
-          default: []
         files:
           type: array
           items:
@@ -2144,8 +2090,9 @@ components:
           type: string
           readOnly: true
         taxes:
-          allOf:
-          - $ref: '#/components/schemas/Tax'
+          type: array
+          items:
+            $ref: '#/components/schemas/Tax'
           readOnly: true
         charge:
           type: string
@@ -2169,10 +2116,6 @@ components:
           type: object
           additionalProperties: {}
           readOnly: true
-        custom_fields:
-          allOf:
-          - $ref: '#/components/schemas/CustomField'
-          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -2183,7 +2126,6 @@ components:
       - charge
       - contact
       - currency
-      - custom_fields
       - discount
       - discount_percentage
       - due_date
@@ -2470,7 +2412,6 @@ components:
       - dispute_resolved
       - receipt_sent
       - refunded
-      - partially_refunded
       - failed
       type: string
       description: |-
@@ -2486,7 +2427,6 @@ components:
         * `dispute_resolved` - Dispute won
         * `receipt_sent` - Receipt sent
         * `refunded` - Refunded
-        * `partially_refunded` - Partially refunded
         * `failed` - Failed
     UserMicroApi:
       type: object
