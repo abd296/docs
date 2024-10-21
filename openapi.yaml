@@ -1763,7 +1763,8 @@ components:
             * `15` - 15%
             * `20` - 20%
         contact:
-          type: integer
+          type: string
+          format: uuid
           description: Contact ID, Get the contact code form /currencies api
         invoice_number:
           type: string
