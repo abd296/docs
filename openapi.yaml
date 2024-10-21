@@ -1201,6 +1201,10 @@ components:
     BalanceTransactionApi:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         created:
           type: string
           format: date-time
@@ -1224,22 +1228,18 @@ components:
         currency:
           type: string
           title: Currency code
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
       required:
       - amount
       - created
       - currency
+      - id
       - is_debit
       - payable_at
       - type
-      - uuid
     BusinessApi:
       type: object
       properties:
-        uuid:
+        id:
           type: string
           format: uuid
           readOnly: true
@@ -1256,10 +1256,10 @@ components:
           readOnly: true
           title: Business image
       required:
+      - id
       - image
       - name
       - status
-      - uuid
     BusinessApiStatusEnum:
       enum:
       - limited
@@ -1275,6 +1275,10 @@ components:
     BusinessUserApi:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         role:
           type: string
           title: Role code
@@ -1308,19 +1312,15 @@ components:
           pattern: ^-?\d{0,12}(?:\.\d{0,3})?$
         volume_currency:
           type: string
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
       required:
       - email
       - first_name
+      - id
       - job_title
       - last_name
       - role
       - status
       - user
-      - uuid
     BusinessUserApiStatusEnum:
       enum:
       - invited
@@ -1331,9 +1331,32 @@ components:
         * `invited` - Invited
         * `enabled` - Enabled
         * `disabled` - Disabled
+    CardData:
+      type: object
+      properties:
+        card_number:
+          type: string
+        expiry_month:
+          type: string
+        expiry_year:
+          type: string
+        security_code:
+          type: string
+          nullable: true
+        card_holder_name:
+          type: string
+          nullable: true
+      required:
+      - card_number
+      - expiry_month
+      - expiry_year
     ChargeApi:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         created:
           type: string
           format: date-time
@@ -1395,10 +1418,11 @@ components:
           nullable: true
         user:
           $ref: '#/components/schemas/UserMicroApi'
+        source:
+          $ref: '#/components/schemas/ChargeSource'
         events:
-          type: array
-          items:
-            $ref: '#/components/schemas/ChargeEventApi'
+          allOf:
+          - $ref: '#/components/schemas/ChargeEventApi'
           readOnly: true
         settlement_currency:
           type: string
@@ -1425,10 +1449,6 @@ components:
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
           readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
       required:
       - contact
       - created
@@ -1438,6 +1458,7 @@ components:
       - fee
       - fee_tax
       - fx_fee
+      - id
       - items
       - net
       - network_cost
@@ -1448,7 +1469,6 @@ components:
       - tip
       - total
       - user
-      - uuid
     ChargeApiStatusEnum:
       enum:
       - authorised
@@ -1500,10 +1520,66 @@ components:
           maxLength: 100
       required:
       - amount
+    ChargeSource:
+      type: object
+      properties:
+        type:
+          type: string
+        token:
+          type: string
+          nullable: true
+        expiry_month:
+          type: string
+          nullable: true
+        expiry_year:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        scheme:
+          type: string
+          nullable: true
+        scheme_local:
+          type: string
+          nullable: true
+        last4:
+          type: string
+          nullable: true
+        bin:
+          type: string
+          nullable: true
+        card_type:
+          type: string
+          nullable: true
+        card_category:
+          type: string
+          nullable: true
+        issuer:
+          type: string
+          nullable: true
+        issuer_country:
+          type: string
+          nullable: true
+        product_id:
+          type: string
+          nullable: true
+        product_type:
+          type: string
+          nullable: true
+        expires_on:
+          type: string
+          nullable: true
+        card_data:
+          allOf:
+          - $ref: '#/components/schemas/CardData'
+          nullable: true
+      required:
+      - type
     ContactApi:
       type: object
       properties:
-        uuid:
+        id:
           type: string
           format: uuid
           readOnly: true
@@ -1558,17 +1634,21 @@ components:
       - created
       - email
       - first_name
+      - id
       - image
       - job_title
       - last_name
       - phone_number
       - province
       - street
-      - uuid
       - zip_code
     ContactMiniApi:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         first_name:
           type: string
           readOnly: true
@@ -1583,20 +1663,16 @@ components:
           format: email
           readOnly: true
           title: Email address
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
       required:
       - business_name
       - email
       - first_name
+      - id
       - last_name
-      - uuid
     CountryMiniApi:
       type: object
       properties:
-        uuid:
+        id:
           type: string
           format: uuid
           readOnly: true
@@ -1609,8 +1685,8 @@ components:
           readOnly: true
       required:
       - code
+      - id
       - name
-      - uuid
     CreateCustomerRequest:
       type: object
       properties:
@@ -1687,9 +1763,8 @@ components:
             * `15` - 15%
             * `20` - 20%
         contact:
-          type: string
-          format: uuid
-          description: Contact ID, Get the contact uuid form /contacts api
+          type: integer
+          description: Contact ID, Get the contact code form /currencies api
         invoice_number:
           type: string
           description: Invoice number
@@ -1773,10 +1848,10 @@ components:
     CurrenciesApi:
       type: object
       properties:
-        uuid:
+        id:
           type: string
           format: uuid
-          description: Unique Identifier of the Currency.
+          readOnly: true
         name:
           type: string
           description: Name of the Currency
@@ -1796,8 +1871,8 @@ components:
       - code
       - decimal_places
       - denominations
+      - id
       - name
-      - uuid
     DiscountPercentageEnum:
       enum:
       - 0
@@ -1857,6 +1932,10 @@ components:
     InvoiceDetailApi:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         reference_id:
           type: string
           readOnly: true
@@ -1908,7 +1987,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/LinkItemList'
+            $ref: '#/components/schemas/LinkItem'
           readOnly: true
         taxes:
           type: array
@@ -1979,21 +2058,17 @@ components:
         files:
           type: array
           items:
-            $ref: '#/components/schemas/LinkFileFiltered'
+            $ref: '#/components/schemas/LinkFileFilteredApi'
           readOnly: true
         reminders:
           type: array
           items:
-            $ref: '#/components/schemas/LinkReminderFiltered'
+            $ref: '#/components/schemas/LinkReminderFilteredApi'
           readOnly: true
         events:
           type: array
           items:
             $ref: '#/components/schemas/ChargeEventApi'
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
       required:
       - allow_tip
       - amount
@@ -2008,6 +2083,7 @@ components:
       - events
       - expiry
       - files
+      - id
       - interval_count
       - invoice_number
       - items
@@ -2023,7 +2099,6 @@ components:
       - title
       - url
       - user
-      - uuid
     InvoiceDetailApiStatusEnum:
       enum:
       - enabled
@@ -2047,6 +2122,10 @@ components:
     LinkApi:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         title:
           type: string
           readOnly: true
@@ -2116,10 +2195,6 @@ components:
           type: object
           additionalProperties: {}
           readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
       required:
       - allow_tip
       - amount
@@ -2129,6 +2204,7 @@ components:
       - discount
       - discount_percentage
       - due_date
+      - id
       - items
       - note
       - shipping_address_required
@@ -2139,7 +2215,6 @@ components:
       - tip_percentage
       - title
       - url
-      - uuid
     LinkCustomField:
       type: object
       properties:
@@ -2150,11 +2225,12 @@ components:
           default: false
       required:
       - name
-    LinkFileFiltered:
+    LinkFileFilteredApi:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
           readOnly: true
         title:
           type: string
@@ -2198,29 +2274,12 @@ components:
       required:
       - amount
       - name
-    LinkItemList:
-      type: object
-      properties:
-        amount:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
-          readOnly: true
-        name:
-          type: string
-          readOnly: true
-        id:
-          type: integer
-          readOnly: true
-      required:
-      - amount
-      - id
-      - name
-    LinkReminderFiltered:
+    LinkReminderFilteredApi:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
           readOnly: true
         days:
           type: integer
@@ -2431,18 +2490,18 @@ components:
     UserMicroApi:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         first_name:
           type: string
         last_name:
           type: string
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
       required:
       - first_name
+      - id
       - last_name
-      - uuid
   securitySchemes:
     apiKeyAuth:
       type: apiKey
