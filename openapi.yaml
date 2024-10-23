@@ -110,6 +110,54 @@ paths:
                     description: Specific error code identifying the error.
                     example: not_found
           description: ''
+  /v1/charges/{uuid}/refund:
+    post:
+      operationId: Refund Charge
+      description: Refund charge (partially or full).
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRefundRequest'
+        required: true
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Succesfully refunded
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                  code:
+                    type: object
+                    nullable: true
+                    description: Specific error code identifying the error.
+          description: ''
   /v1/countries:
     get:
       operationId: Fetch countries
@@ -1400,6 +1448,12 @@ components:
           pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
           readOnly: true
           title: Total amount
+        refund_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+          title: Refund total amount
         note:
           type: string
           readOnly: true
@@ -1420,6 +1474,15 @@ components:
           $ref: '#/components/schemas/UserMicroApi'
         source:
           $ref: '#/components/schemas/ChargeSource'
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomFieldAnswer'
+          default: []
+        refunds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChargeRefund'
         events:
           allOf:
           - $ref: '#/components/schemas/ChargeEventApi'
@@ -1463,6 +1526,7 @@ components:
       - net
       - network_cost
       - note
+      - refund_total
       - settlement_currency
       - status
       - tax
@@ -1477,6 +1541,7 @@ components:
       - disputed
       - paid
       - refunded
+      - partially_refunded
       - failed
       type: string
       description: |-
@@ -1486,6 +1551,7 @@ components:
         * `disputed` - Disputed
         * `paid` - Paid
         * `refunded` - Refunded
+        * `partially_refunded` - Partially refunded
         * `failed` - Failed
     ChargeEventApi:
       type: object
@@ -1520,6 +1586,21 @@ components:
           maxLength: 100
       required:
       - amount
+    ChargeRefund:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+      required:
+      - amount
+      - created
     ChargeSource:
       type: object
       properties:
@@ -1791,6 +1872,14 @@ components:
           type: string
           format: date-time
           description: Invoice start date
+        success_url:
+          type: string
+          format: uri
+          description: Redirects to the success URL after the invoice is completed.
+        failure_url:
+          type: string
+          format: uri
+          description: Redirects to the failure URL if the invoice payment fails.
       required:
       - contact
       - currency
@@ -1842,10 +1931,28 @@ components:
             $ref: '#/components/schemas/LinkCustomField'
           nullable: true
           description: 'Custom fields to add. Note: max you can add 5'
+        success_url:
+          type: string
+          format: uri
+          description: Redirects to the success URL after the link gets completed.
+        failure_url:
+          type: string
+          format: uri
+          description: Redirects to the failure URL if the link payment fails.
       required:
       - currency
       - items
       - title
+    CreateRefundRequest:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: amount to be refunded
+      required:
+      - amount
     CurrenciesApi:
       type: object
       properties:
@@ -1873,6 +1980,25 @@ components:
       - decimal_places
       - denominations
       - id
+      - name
+    CustomField:
+      type: object
+      properties:
+        name:
+          type: string
+        is_required:
+          type: boolean
+      required:
+      - is_required
+      - name
+    CustomFieldAnswer:
+      type: object
+      properties:
+        name:
+          type: string
+        answer:
+          type: string
+      required:
       - name
     DiscountPercentageEnum:
       enum:
@@ -2056,6 +2182,19 @@ components:
           type: string
           format: email
           writeOnly: true
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+          default: []
+        success_url:
+          type: string
+          format: uri
+          description: Redirects to the success URL after the invoice is completed.
+        failure_url:
+          type: string
+          format: uri
+          description: Redirects to the failure URL if the invoice payment fails.
         files:
           type: array
           items:
@@ -2196,12 +2335,18 @@ components:
           type: object
           additionalProperties: {}
           readOnly: true
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+          readOnly: true
       required:
       - allow_tip
       - amount
       - charge
       - contact
       - currency
+      - custom_fields
       - discount
       - discount_percentage
       - due_date
@@ -2472,6 +2617,7 @@ components:
       - dispute_resolved
       - receipt_sent
       - refunded
+      - partially_refunded
       - failed
       type: string
       description: |-
@@ -2487,6 +2633,7 @@ components:
         * `dispute_resolved` - Dispute won
         * `receipt_sent` - Receipt sent
         * `refunded` - Refunded
+        * `partially_refunded` - Partially refunded
         * `failed` - Failed
     UserMicroApi:
       type: object

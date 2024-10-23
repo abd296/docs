@@ -59,7 +59,8 @@
         "api-reference/list-charges",
         "api-reference/get-charge",
         "api-reference/list-transactions",
-        "api-reference/get-transaction"
+        "api-reference/get-transaction",
+        "api-reference/charge-refund"
       ]
     },
     {
