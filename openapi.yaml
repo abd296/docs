@@ -1513,11 +1513,11 @@ components:
           pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
           readOnly: true
         success_url:
-          type: char
+          type: string
           nullable: true
           readOnly: true
         failure_url:
-          type: char
+          type: string
           nullable: true
           readOnly: true
       required:
