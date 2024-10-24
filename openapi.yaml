@@ -1882,6 +1882,12 @@ components:
           type: string
           format: date-time
           description: Invoice start date
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkCustomFieldZapier'
+          nullable: true
+          description: 'Custom fields to add. Note: max you can add 5'
         success_url:
           type: string
           format: uri
@@ -1935,10 +1941,10 @@ components:
           type: boolean
           default: false
           description: Allow tips.
-        customFields:
+        custom_fields:
           type: array
           items:
-            $ref: '#/components/schemas/LinkCustomField'
+            $ref: '#/components/schemas/LinkCustomFieldZapier'
           nullable: true
           description: 'Custom fields to add. Note: max you can add 5'
         success_url:
@@ -2371,16 +2377,16 @@ components:
       - tip_percentage
       - title
       - url
-    LinkCustomField:
+    LinkCustomFieldZapier:
       type: object
       properties:
-        name:
+        custom_field_name:
           type: string
-        is_required:
+        custom_field_is_required:
           type: boolean
           default: false
       required:
-      - name
+      - custom_field_name
     LinkFileFilteredApi:
       type: object
       properties:
