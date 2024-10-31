@@ -2,35 +2,32 @@
 title: "Authentication"
 ---
 
-The Nomod API uses ApiKey Auth Scheme for authentication. To use the API, you will need to generate an API secret key for the platform.
-This can be done easily through the Nomod App that is accessible through the settings of nomod app where you can generate the api key.
+The Nomod API uses an API Key Authentication Scheme. To use the API, you must generate an API secret key through the Nomod App. This can be done easily in the settings of the Nomod app, where you can generate the API key.
 
-Here, you can revoke your API key to block access to the Nomod API. 
+In the app settings, you can also revoke your API key to block access to the Nomod API when needed.
 
 <Warning>
-  If an unauthorised person gains access to your API Key they will be able use
-  your account and can create link. Keep it somewhere safe and don't share it with
-  anyone.
+  If an unauthorized person gains access to your API Key, they will be able to use
+  your account and may create links. Keep it secure and do not share it with anyone.
 </Warning>
 
-Currently, we support one key per business per integraion. Once you have generated a key, you will need to pass in the key
-with every API request for us to process it successfully. Otherwise, an error with a code of 401 will be returned.
+Currently, we support one key per business per integration. Once you have generated a key, you will need to include it with every API request for successful processing. Otherwise, an error with a code of 401 will be returned.
 
 <Note>
-  Changes made through the API will be attributed to the owner of business the API key is
-  assigned to.
+  Changes made through the API will be attributed to the business owner to whom the API key is
+  assigned.
 </Note>
 
-#### ApiKey Scheme
+#### API Key Scheme
 
 | Item                   | Value                                                                                          |
 | ---------------------- | ---------------------------------------------------------------------------------------------- |
-| Security Scheme Type:  | API Key                                                                                        |
-| Header parameter name: | X-API-KEY                                                                                      |
-| Header parameter desc: | API key <br/> e.g. `ApnKD16Sw64AQ6-arfK0PTCPcXsTuIqEHZENX0Q2MSogCZu` |
+| Security Scheme Type   | API Key                                                                                        |
+| Header Parameter Name  | X-API-KEY                                                                                      |
+| Header Parameter Example | API key <br/> e.g., `ApnKD16Sw64AQ6-arfK0PTCPcXsTuIqEHZENX0Q2MSogCZu`                        |
 
 ### Authentication Errors
 
 _Error: API key not set or invalid_
 
-**Solution:** Double-check your API key for any typos. If you’re copying it from a website or document, ensure there are no leading or trailing whitespaces. If the error persists, revoke the api key and generate a new one.
+**Solution:** Double-check your API key for any typos. If you’re copying it from a source, ensure there are no leading or trailing whitespaces. If the error persists, revoke the API key and generate a new one.

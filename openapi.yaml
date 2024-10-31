@@ -532,7 +532,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedInvoiceDetailApiList'
+                $ref: '#/components/schemas/PaginatedInvoiceApiList'
           description: ''
         '401':
           content:
@@ -1045,6 +1045,130 @@ paths:
                     description: Specific error code identifying the error.
                     example: not_found
           description: ''
+  /v1/payouts:
+    get:
+      operationId: Fetch Payouts
+      description: Fetch all Payouts list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPayoutApiList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
+  /v1/referral-transactions:
+    get:
+      operationId: Fetch Refferal Transaction
+      description: Fetch all Refferal Transaction list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReferralApiList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Authentication credentials were not provided.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: not_authenticated
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: false
+                    description: Text of the error message.
+                    example: Request was throttled. Expected available in 1 second.
+                  code:
+                    type: object
+                    nullable: false
+                    description: Specific error code identifying the error.
+                    example: throttled
+          description: ''
   /v1/transactions:
     get:
       operationId: Fetch Transaction
@@ -1460,6 +1584,10 @@ components:
         contact:
           type: integer
           readOnly: true
+        payment_method:
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          readOnly: true
         discount_percentage:
           type: string
           format: decimal
@@ -1535,6 +1663,7 @@ components:
       - net
       - network_cost
       - note
+      - payment_method
       - refund_total
       - settlement_currency
       - status
@@ -1797,7 +1926,7 @@ components:
           description: Email address.
         phone_number:
           type: string
-          description: Phone
+          description: Phone e.g., +971500123456.
           maxLength: 15
         business_name:
           type: string
@@ -1905,13 +2034,15 @@ components:
       properties:
         currency:
           type: string
-          description: Currency code. Get the currency code form /currencies api
+          description: ISO 4217 currency code for the link. Retrieve codes from the
+            /currencies endpoint.
           maxLength: 3
         items:
           type: array
           items:
             $ref: '#/components/schemas/LinkItemAPI'
-          description: List of items with name and amount.
+          description: List of items associated with this link, including name and
+            amount.
         title:
           type: string
           description: Craft a beautiful name for your link
@@ -1926,7 +2057,7 @@ components:
           - $ref: '#/components/schemas/DiscountPercentageEnum'
           default: 0
           description: |-
-            Discount percentage
+            Discount percentage. valid options are 0%, 5%, 10%, 15%, and 20%.
 
             * `0` - 0%
             * `5` - 5%
@@ -1946,15 +2077,15 @@ components:
           items:
             $ref: '#/components/schemas/LinkCustomFieldZapier'
           nullable: true
-          description: 'Custom fields to add. Note: max you can add 5'
+          description: Custom fields to add. Maximum of 5 allowed
         success_url:
           type: string
           format: uri
-          description: Redirects to the success URL after the link gets completed.
+          description: URL to redirect to upon successful transaction completion
         failure_url:
           type: string
           format: uri
-          description: Redirects to the failure URL if the link payment fails.
+          description: URL to redirect to if the transaction fails.
       required:
       - currency
       - items
@@ -1965,7 +2096,7 @@ components:
         amount:
           type: string
           format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
           description: amount to be refunded
       required:
       - amount
@@ -1978,13 +2109,13 @@ components:
           readOnly: true
         name:
           type: string
-          description: Name of the Currency
+          description: name of the currency (e.g., 'United States Dollar').
         code:
           type: string
-          description: Currency code
+          description: ISO 4217 currency code (e.g., 'USD').
         decimal_places:
           type: integer
-          description: Number of decimal places for the currency.
+          description: Number of decimal places typically used for the currency.
         denominations:
           type: array
           items:
@@ -2072,6 +2203,108 @@ components:
       - last_name
       - phone_number
       - role
+    InvoiceApi:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        currency:
+          type: string
+          title: Currency code
+        status:
+          type: string
+          readOnly: true
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        allow_tip:
+          type: boolean
+          readOnly: true
+        shipping_address_required:
+          type: boolean
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkItem'
+        tax:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+          title: Tax amount
+        note:
+          type: string
+          readOnly: true
+        taxes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tax'
+          readOnly: true
+        charge:
+          type: string
+          readOnly: true
+        discount_percentage:
+          type: integer
+          readOnly: true
+        tip:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,3})?$
+          readOnly: true
+        tip_percentage:
+          type: integer
+          readOnly: true
+        due_date:
+          type: string
+          format: date-time
+          readOnly: true
+        contact:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        custom_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+          readOnly: true
+      required:
+      - allow_tip
+      - amount
+      - charge
+      - contact
+      - currency
+      - custom_fields
+      - discount
+      - discount_percentage
+      - due_date
+      - id
+      - items
+      - note
+      - shipping_address_required
+      - status
+      - tax
+      - taxes
+      - tip
+      - tip_percentage
+      - title
+      - url
     InvoiceDetailApi:
       type: object
       properties:
@@ -2382,6 +2615,7 @@ components:
       properties:
         custom_field_name:
           type: string
+          description: custom field
         custom_field_is_required:
           type: boolean
           default: false
@@ -2427,12 +2661,13 @@ components:
       properties:
         name:
           type: string
-          description: Item Name
+          description: Name of the item.
           maxLength: 50
         amount:
           type: string
           format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+          description: Price of the item.
       required:
       - amount
       - name
@@ -2523,7 +2758,7 @@ components:
       - next
       - previous
       - results
-    PaginatedInvoiceDetailApiList:
+    PaginatedInvoiceApiList:
       type: object
       properties:
         count:
@@ -2542,7 +2777,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/InvoiceDetailApi'
+            $ref: '#/components/schemas/InvoiceApi'
     PaginatedLinkApiList:
       type: object
       properties:
@@ -2563,6 +2798,46 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LinkApi'
+    PaginatedPayoutApiList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayoutApi'
+    PaginatedReferralApiList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferralApi'
     PatchedInvoiceUpdateApi:
       type: object
       properties:
@@ -2577,6 +2852,87 @@ components:
           type: boolean
         delete:
           type: boolean
+    PaymentMethodEnum:
+      enum:
+      - cash
+      - nomod
+      - stripe
+      - checkout
+      - myfatoorah
+      - tabby
+      - tamara
+      type: string
+      description: |-
+        * `cash` - Cash Charge
+        * `nomod` - Nomod Payments
+        * `stripe` - Stripe
+        * `checkout` - Checkout
+        * `myfatoorah` - MyFatoorah
+        * `tabby` - Tabby
+        * `tamara` - Tamara
+    PayoutApi:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        charge_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,3})?$
+          readOnly: true
+        charge_count:
+          type: integer
+          readOnly: true
+          title: Number of charges
+        refund_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,3})?$
+          readOnly: true
+        adjustment_amount:
+          type: string
+          readOnly: true
+        dispute_amount:
+          type: string
+          readOnly: true
+        fee:
+          type: string
+          readOnly: true
+        total_amount:
+          type: string
+          readOnly: true
+        currency:
+          type: string
+          title: Currency code
+        payout_fee:
+          type: string
+          readOnly: true
+        speed:
+          type: string
+          readOnly: true
+      required:
+      - adjustment_amount
+      - charge_amount
+      - charge_count
+      - created
+      - currency
+      - dispute_amount
+      - fee
+      - id
+      - payout_fee
+      - refund_amount
+      - speed
+      - status
+      - total_amount
     Province:
       type: object
       properties:
@@ -2589,6 +2945,47 @@ components:
       required:
       - id
       - name
+    ReferralApi:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        date:
+          type: string
+          format: date-time
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+          readOnly: true
+        is_debit:
+          type: boolean
+          readOnly: true
+          title: Debit
+        currency:
+          type: string
+          title: Currency code
+        business_name:
+          type: string
+          nullable: true
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+        referrer_title:
+          type: string
+          readOnly: true
+      required:
+      - amount
+      - currency
+      - date
+      - id
+      - is_debit
+      - referrer_title
     RoleEnum:
       enum:
       - admin

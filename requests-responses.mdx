@@ -2,18 +2,17 @@
 title: "Requests and Responses"
 ---
 
-This is a RESTful API. All requests use the base URL of https://apiv1.nomod.dev/.
+This is a RESTful API. All requests use the base URL: https://apiv1.nomod.dev/.
 
-Responses to each request are provided as a JSON object. The response is either the data requested, or a valid error
-message and error code as outlined below.
+Responses to each request are provided as a JSON object, containing either the requested data or a valid error message with an error code, as outlined below.
 
-Here is a list of all the error codes the Nomod API returns in case something does not go as expected:
+Here is a list of all the error codes the Nomod API may return if something does not go as expected:
 
 | Error Code | Meaning                                                                                                               |
 | ---------- | --------------------------------------------------------------------------------------------------------------------- |
-| 401        | Unauthorized -- Your API key is invalid.                                                                              |
-| 403        | Forbidden -- Insufficient rights.                                                                                     |
-| 404        | Not Found -- Requested resource does not exist.                                                                       |
-| 429        | Too Many Requests -- You have exceed the rate limit.                                                                  |
-| 500        | Internal Server Error -- We had a problem with our server. Try again later.                                           |
-| 503        | Service Unavailable -- This shouldn't generally happen. Either a deploy is in process, or Nomod services are down.    |
+| 401        | Unauthorized — Your API key is invalid.                                                                              |
+| 403        | Forbidden — Insufficient rights.                                                                                     |
+| 404        | Not Found — The requested resource does not exist.                                                                       |
+| 429        | Too Many Requests — You have exceeded the rate limit.                                                                  |
+| 500        | Internal Server Error — We had a problem with our server. Try again later.                                           |
+| 503        | Service Unavailable — This generally shouldn't happen. Either a deployment is in process, or Nomod services are down.    |

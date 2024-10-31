@@ -27,51 +27,51 @@
   },
   "navigation": [
     {
-      "group": "Get Started",
+      "group": "Getting Started",
       "pages": [
         "quick-introduction",
         "authentication",
         "rate-limits",
-        "requests-responses"
+        "requests-and-responses"
       ]
     },
     {
-      "group": "Link",
+      "group": "Links",
       "pages": [
-        "api-reference/list-links",
-        "api-reference/create-link",
-        "api-reference/get-link-detail",
-        "api-reference/update-link"
+        "api-reference/links/get-list",
+        "api-reference/links/create-link",
+        "api-reference/links/get-link-details",
+        "api-reference/links/update-link"
       ]
     },
     {
-      "group": "Invoice",
+      "group": "Invoices",
       "pages": [
-        "api-reference/list-invoices",
-        "api-reference/create-invoice",
-        "api-reference/get-invoice",
-        "api-reference/update-invoice"
+        "api-reference/invoices/get-list",
+        "api-reference/invoices/create-invoice",
+        "api-reference/invoices/get-invoice",
+        "api-reference/invoices/update-invoice"
       ]
     },
     {
-      "group": "Charge",
+      "group": "Charges",
       "pages": [
-        "api-reference/list-charges",
-        "api-reference/get-charge",
-        "api-reference/list-transactions",
-        "api-reference/get-transaction",
-        "api-reference/charge-refund"
+        "api-reference/charges/get-list",
+        "api-reference/charges/get-charge",
+        "api-reference/charges/get-transaction-list",
+        "api-reference/charges/get-transaction",
+        "api-reference/charges/refund"
       ]
     },
     {
-      "group": "Foundational",
+      "group": "Core Data",
       "pages": [
         "api-reference/business-info",
-        "api-reference/get-currencies",
 
+        "api-reference/get-currencies",
         "api-reference/get-countries",
         "api-reference/get-provinces",
-        
+
         "api-reference/contacts/create-contact",
         "api-reference/contacts/get-contacts",
         "api-reference/contacts/retrieve-contact",
@@ -82,18 +82,17 @@
       ]
     },
     {
-      "group": "Zapier",
+      "group": "Zapier Integration",
       "pages": [
         "api-reference/zapier/authenticate"
       ]
     },
     {
-      "group": "Woocommerce",
+      "group": "WooCommerce Integration",
       "pages": [
         "api-reference/woocommerce/authenticate"
       ]
     }
-
   ],
   "api": {
     "baseUrl": "https://api.nomod.dev",
